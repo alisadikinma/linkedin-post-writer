@@ -1,0 +1,26 @@
+{
+  "name": "linkedin-post-writer",
+  "description": "Convert blog posts to native LinkedIn posts, 2026 algorithm-optimized. 12 hook formulas, 5 post-format decision matrix (carousel/text-only/short-video/multi-image), Niche Rotation scheduler (Tue+Thu, US 9AM ET / ID 9AM WIB), Link-in-Comment pattern (avoids 60% reach penalty), MixPost integration for auto-publishing. Built on Depth Score + Interest Graph research (127 sources).",
+  "version": "0.2.0",
+  "author": {
+    "name": "Ali Sadikin",
+    "url": "https://github.com/alisadikinma"
+  },
+  "homepage": "https://github.com/alisadikinma/linkedin-post-writer",
+  "repository": "https://github.com/alisadikinma/linkedin-post-writer",
+  "license": "MIT",
+  "keywords": [
+    "linkedin",
+    "social-media",
+    "content-repurposing",
+    "blog-to-social",
+    "depth-score",
+    "interest-graph",
+    "mixpost",
+    "auto-posting",
+    "carousel",
+    "personal-brand",
+    "ai-solopreneur",
+    "claude-code"
+  ]
+}
