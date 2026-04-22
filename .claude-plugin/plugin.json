@@ -1,6 +1,6 @@
 {
   "name": "linkedin-post-writer",
-  "description": "Convert blog posts to native LinkedIn posts, 2026 algorithm-optimized. 12 hook formulas, 5 post-format decision matrix (carousel/text-only/short-video/multi-image), Niche Rotation scheduler (Tue+Thu, US 9AM ET / ID 9AM WIB), Link-in-Comment pattern (avoids 60% reach penalty), MixPost integration for auto-publishing. Built on Depth Score + Interest Graph research (127 sources).",
+  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 12 hook formulas, Depth Score validator (>=80 gate), Link-in-Comment automation (avoids 60% reach penalty), MixPost OSS integration for auto-publishing, Telegram 15-min cancel window. Built on 127-source RAG research.",
   "version": "0.2.0",
   "author": {
     "name": "Ali Sadikin",
@@ -21,6 +21,8 @@
     "carousel",
     "personal-brand",
     "ai-solopreneur",
+    "automation",
+    "telegram-cancel-window",
     "claude-code"
   ]
 }

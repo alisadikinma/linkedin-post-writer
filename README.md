@@ -20,20 +20,20 @@ claude plugins install alisadikinma/linkedin-post-writer
 
 All 6 skills use `model: sonnet` with compiled reference bundles injected via `--append-system-prompt-file`. See `docs/plans/2026-04-23-plugin-architecture-full-auto.md` §3 for skill-to-reference mapping.
 
-| Skill | Trigger | Description | Status |
-|-------|---------|-------------|--------|
-| `linkedin-gen` | `/linkedin-gen` | End-to-end orchestrator: brief → convert (and/or carousel) → validate → schedule. Entry point for cron-driven full-auto pipeline | Phase B5 |
-| `linkedin-brief` | `/linkedin-brief` | Blog post → brief JSON (format decision using 5-factor matrix, hook formula selection from 12 templates, pillar routing across AI Generalist / AI Solopreneur / Vibe Coding / AI Agents) | Phase B1 |
-| `linkedin-convert` | `/linkedin-convert` | Brief + blog → native LinkedIn text post (1100–1300 chars, 3-5 hashtags, Link-in-Comment pattern, dwell-time-optimized paragraph structure) | Phase B2 |
-| `linkedin-carousel` | `/linkedin-carousel` | Brief + blog → 7-10 slide JSON (1080×1350 portrait, 75px margins, 24pt body minimum, mobile safe zones enforced, per-slide image prompts for GeminiGen.AI) | Phase C2 |
-| `linkedin-validate` | `/linkedin-validate` | Depth Score 0–100 gate with hard-fail rules (AI slop, engagement bait, external links in body, dead-zone text in carousels). Score ≥80 advances to publish, <80 routes to manual review | Phase B3 + C3 |
-| `linkedin-schedule` | `/linkedin-schedule` | Backend bridge: POST validated draft to `/api/automation/linkedin/{id}/schedule`. Backend handles MixPost publishing + Telegram cancel-window state machine | Phase B4 |
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `linkedin-gen` | `/linkedin-gen` | End-to-end orchestrator: brief → convert (and/or carousel) → validate → schedule. Entry point for cron-driven full-auto pipeline |
+| `linkedin-brief` | `/linkedin-brief` | Blog post → brief JSON (format decision using 5-factor matrix, hook formula selection from 12 templates, pillar routing across AI Generalist / AI Solopreneur / Vibe Coding / AI Agents) |
+| `linkedin-convert` | `/linkedin-convert` | Brief + blog → native LinkedIn text post (1100–1300 chars, 3-5 hashtags, Link-in-Comment pattern, dwell-time-optimized paragraph structure) |
+| `linkedin-carousel` | `/linkedin-carousel` | Brief + blog → 7-10 slide JSON (1080×1350 portrait, 75px margins, 24pt body minimum, mobile safe zones enforced, per-slide image prompts for GeminiGen.AI) |
+| `linkedin-validate` | `/linkedin-validate` | Depth Score 0–100 gate with hard-fail rules (AI slop, engagement bait, external links in body, dead-zone text in carousels). Score ≥80 advances to publish, <80 routes to manual review |
+| `linkedin-schedule` | `/linkedin-schedule` | Backend bridge: POST validated draft to `/api/automation/linkedin/{id}/schedule`. Backend handles MixPost publishing + Telegram cancel-window state machine |
 
 ## Agent
 
-| Agent | Description | Status |
-|-------|-------------|--------|
-| `linkedin-writer` | Self-contained batch subagent for multi-post conversion. Mirrors the same brief → convert → carousel → validate → schedule flow with all rules inline, useful for backfilling historical blog posts in one pass | Phase B5 |
+| Agent | Description |
+|-------|-------------|
+| `linkedin-writer` | Self-contained batch subagent for multi-post conversion. Mirrors the same brief → convert → carousel → validate → schedule flow with all rules inline, useful for backfilling historical blog posts in one pass |
 
 ## Architecture
 
@@ -59,7 +59,7 @@ All skills encode these rules as hard validation constraints:
 | Carousel mobile dead zones | Top 150px + bottom 200px (no text allowed) |
 | Carousel slide count | 7-10 sweet spot (5-8 for short frameworks, 8-10 for case studies) |
 
-Banned vocabulary (auto-fail): "delve into", "unlock the power of", "in today's fast-paced digital landscape", "at the end of the day", "navigating the complexities of", "harness the power of", "seamlessly integrate". Banned CTAs: "Comment YES", "Type A/B", "Drop a 🔥", "Smash that like button". Full list maintained in `docs/rag/linkedin-playbook/01-main-playbook.md` and compiled into `references/compiled/refs-linkedin-playbook.md`.
+Banned vocabulary (auto-fail): "delve into", "unlock the power of", "in today's fast-paced digital landscape", "at the end of the day", "navigating the complexities of", "harness the power of", "seamlessly integrate". Banned CTAs: "Comment YES", "Type A/B", "Drop a 🔥", "Smash that like button". Full list maintained in `docs/rag/linkedin-playbook/01-main-playbook.md` (compiled bundle lands in Phase A2 under `references/compiled/refs-linkedin-playbook.md`).
 
 ## Pillars (Ali's Brand Routing)
 
@@ -163,7 +163,7 @@ nlm notebook query li-rag "latest LinkedIn reach penalty behaviors"
 nlm report create li-rag --format "Create Your Own" --prompt "..." --confirm
 ```
 
-Regenerate compiled reference bundles after editing any raw file:
+Regenerate compiled reference bundles after editing any raw file (script lands in Phase A2):
 
 ```bash
 npx tsx scripts/compile-refs.ts
