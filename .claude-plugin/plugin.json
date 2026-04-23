@@ -1,6 +1,6 @@
 {
   "name": "linkedin-post-writer",
-  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 12 hook formulas, Depth Score validator (>=80 gate), Link-in-Comment automation (avoids 60% reach penalty), MixPost OSS integration for auto-publishing, Telegram 15-min cancel window. Built on 127-source RAG research.",
+  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 5 skills + 1 agent: brief router, text post writer, carousel composer with per-slide image prompts, Depth Score validator (>=80 gate), and end-to-end orchestrator. 12 text hook formulas, 5 cover hook frameworks, 20-rule anti-slop rubric. Pure content generation — emits draft JSON for an admin panel to consume. Built on 127-source RAG research.",
   "version": "0.2.0",
   "author": {
     "name": "Ali Sadikin",
@@ -16,13 +16,11 @@
     "blog-to-social",
     "depth-score",
     "interest-graph",
-    "mixpost",
-    "auto-posting",
     "carousel",
     "personal-brand",
     "ai-solopreneur",
-    "automation",
-    "telegram-cancel-window",
+    "build-in-public",
+    "anti-ai-slop",
     "claude-code"
   ]
 }
