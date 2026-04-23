@@ -96,7 +96,11 @@ const ENGAGEMENT_BAIT = [
 export const ConvertOutputSchema = z
   .object({
     post_text: z.string().min(1100).max(1300),
-    link_comment: z.string().min(20).max(280),
+    link_comment: z
+      .string()
+      .min(20)
+      .max(280)
+      .regex(/https?:\/\//, 'link_comment must contain the blog URL'),
     hashtags: z
       .array(z.string().regex(/^#[A-Za-z0-9]+$/))
       .min(3)

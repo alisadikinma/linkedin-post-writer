@@ -466,6 +466,19 @@ describe('linkedin-convert golden fixtures', () => {
       const opener = out.post_text.slice(0, 80);
       expect(opener).toMatch(/\d/);
     });
+
+    it('expected output has at most 2 lines per \\n\\n-paragraph (dwell-time rhythm)', async () => {
+      const out = await loadJsonFixture(
+        'convert',
+        'expected-framework.json',
+        ConvertOutputSchema,
+      );
+      const paragraphs = out.post_text.split('\n\n');
+      for (const para of paragraphs) {
+        const lineCount = para.split('\n').length;
+        expect(lineCount, `paragraph "${para.slice(0, 40)}..." exceeds 2-line rhythm`).toBeLessThanOrEqual(2);
+      }
+    });
   });
 
   describe('opinion fixture (contrarian hook)', () => {
@@ -556,6 +569,19 @@ describe('linkedin-convert golden fixtures', () => {
         opener,
         `contrarian opener should signal disagreement; got: "${opener}"`,
       ).toMatch(/wrong|disagree|conventional|everyone|they say|myth|stop|actually|no[t]?[, ]|truth/);
+    });
+
+    it('expected output has at most 2 lines per \\n\\n-paragraph (dwell-time rhythm)', async () => {
+      const out = await loadJsonFixture(
+        'convert',
+        'expected-opinion.json',
+        ConvertOutputSchema,
+      );
+      const paragraphs = out.post_text.split('\n\n');
+      for (const para of paragraphs) {
+        const lineCount = para.split('\n').length;
+        expect(lineCount, `paragraph "${para.slice(0, 40)}..." exceeds 2-line rhythm`).toBeLessThanOrEqual(2);
+      }
     });
   });
 
