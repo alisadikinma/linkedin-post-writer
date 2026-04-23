@@ -65,7 +65,7 @@ Every carousel in v1.0 uses the same structural template (`structure: 'build_in_
 | 5 | `body` | Continue proof / listicle items 2-3. | 80-260 chars |
 | 6 | `body` | Continue proof / listicle items 4-5. | 80-260 chars |
 | 7 | `body` | Final proof / listicle items 6-7 / the insight payoff. | 80-260 chars |
-| 8 | `direct_answer` | **30-80 word** (150-600 char) `direct_answer_block` — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. | 200-560 chars copy, 150-600 chars in direct_answer_block |
+| 8 | `direct_answer` | Short lead-in copy (~150-400 chars, within the uniform schema bound of 10-420). The real substance lives in the separate `direct_answer_block` field: **30-80 words / 150-600 chars** — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. | 10-420 chars copy (lead-in) + 150-600 chars direct_answer_block |
 | 9 | `cta` (is_cta=true) | 5+ word comment-prompting question + "Blog link in comments 👇" reminder. Question targets the 15× Comment Quality weight in the Depth Score formula. | 100-320 chars |
 
 Hard structural invariants (schema-enforced):
@@ -84,7 +84,7 @@ Hard structural invariants (schema-enforced):
 
 ## Step 4 — Build the `image_prompt` for each slide (CRITICAL — text-baked-in)
 
-This is where Addendum 2 D9 lives. Each `image_prompt` is **300-500 words**, cinematic, written to instruct GeminiGen / Nano Banana Pro to render the slide's `copy` AS IN-FRAME TYPOGRAPHY — not as an overlay applied afterward. A single image generation call produces the final slide PNG with background, figure, and copy all composed together.
+This is where Addendum 2 D9 lives. Each `image_prompt` is **300-2500 characters** (schema-enforced; target ~1500-2000 chars of cinematic prose for production-quality renders), written to instruct GeminiGen / Nano Banana Pro to render the slide's `copy` AS IN-FRAME TYPOGRAPHY — not as an overlay applied afterward. A single image generation call produces the final slide PNG with background, figure, and copy all composed together.
 
 Every `image_prompt` MUST include the following specifications (in natural prose — not bullet lists — the image model responds better to prose briefs):
 

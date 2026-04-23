@@ -640,6 +640,20 @@ describe('linkedin-carousel golden fixture (listicle, 9 slides)', () => {
     }
   });
 
+  it('no image_prompt contains http(s) URLs (link-in-comment discipline extends to image layer)', async () => {
+    const out = await loadJsonFixture(
+      'carousel',
+      'expected-listicle.json',
+      CarouselOutputSchema,
+    );
+    for (const slide of out.slides) {
+      expect(
+        slide.image_prompt,
+        `slide ${slide.slide_number} image_prompt must not contain http(s) URLs`,
+      ).not.toMatch(/https?:\/\//i);
+    }
+  });
+
   it('human_fingerprint slide image_prompt references creator_brand_logo asset', async () => {
     const out = await loadJsonFixture(
       'carousel',
