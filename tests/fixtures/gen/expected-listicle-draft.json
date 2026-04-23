@@ -1,0 +1,17 @@
+{
+  "status": "deferred_to_phase_c",
+  "format": "carousel",
+  "brief": {
+    "format": "carousel",
+    "hook_framework": "AIDA",
+    "pillar": "ai_agents",
+    "pull_quote": "Agents without circuit breakers are the ones that cost clients four thousand dollars in API fees overnight. I have seen it happen twice.",
+    "angle": "Every production agent stack reaches for the same 8 patterns — here is the order I introduce them when onboarding a client.",
+    "title_draft": "8 Agent Patterns Behind 12 Shipped Client Projects",
+    "linkedin_conversion_confidence": 0.92
+  },
+  "post": null,
+  "carousel": null,
+  "validation": null,
+  "generated_at": "2026-04-23T09:00:00Z"
+}
