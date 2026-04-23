@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
 
+import { CarouselOutputSchema } from '../../skills/linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../../skills/linkedin-convert/schema.js';
 import {
   ValidationInputSchema,
@@ -128,9 +129,22 @@ describe('linkedin-validate SKILL.md contract', () => {
     expect(skill.body).toMatch(/\b80\b/);
   });
 
-  it('body references Phase C3 for carousel scope', async () => {
+  it('body covers both text and carousel rubrics (post-C3)', async () => {
     const skill = await loadSkillMd('linkedin-validate');
-    expect(skill.body).toMatch(/C3/);
+    // Post-C3 the skill is no longer deferred for carousel. Body must name
+    // both format branches and enumerate the carousel-specific rule ids.
+    expect(skill.body).toMatch(/format\s*=\s*'?carousel'?|format='carousel'/i);
+    expect(skill.body).toContain('carousel_slide_count_out_of_range');
+    expect(skill.body).toContain('carousel_missing_cover');
+    expect(skill.body).toContain('carousel_missing_cta');
+    expect(skill.body).toContain('carousel_missing_human_fingerprint');
+    expect(skill.body).toContain('carousel_missing_direct_answer');
+    expect(skill.body).toContain('carousel_image_prompt_missing_dead_zone');
+    expect(skill.body).toContain('carousel_image_prompt_missing_copy_verbatim');
+    expect(skill.body).toContain('carousel_external_link_in_slide');
+    expect(skill.body).toContain('carousel_cta_missing_question');
+    // Deferral language from B3 must be gone.
+    expect(skill.body).not.toMatch(/out_of_scope/);
   });
 
   it('body includes the rubric deduction values from the spec', async () => {
@@ -335,12 +349,33 @@ describe('linkedin-validate schema.ts contract', () => {
     expect(result.success).toBe(false);
   });
 
-  it('ValidationInputSchema format=carousel branch accepts placeholder post object (C2 lands the real schema)', () => {
+  it('ValidationInputSchema format=carousel branch now requires real CarouselOutputSchema shape (post-C3, tightened from B3 placeholder)', () => {
+    // B3 accepted { slides: [] } as a loose placeholder. C3 tightened this
+    // branch to the real CarouselOutputSchema — a 0-slide carousel with no
+    // cover/CTA/total_slides must now be rejected.
     const result = ValidationInputSchema.safeParse({
       format: 'carousel',
       post: { slides: [] },
     });
-    // Placeholder schema should accept this — carousel shape is pending C2
+    expect(result.success).toBe(false);
+  });
+
+  it('ValidationInputSchema format=carousel branch accepts a schema-valid CarouselOutput', async () => {
+    const carousel = await loadJsonFixture(
+      'carousel',
+      'expected-listicle.json',
+      CarouselOutputSchema,
+    );
+    const result = ValidationInputSchema.safeParse({
+      format: 'carousel',
+      post: carousel,
+    });
+    if (!result.success) {
+      const issues = result.error.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ');
+      throw new Error(`expected success but got: ${issues}`);
+    }
     expect(result.success).toBe(true);
   });
 });
@@ -577,5 +612,185 @@ describe('linkedin-validate golden fixtures — bad post', () => {
     expect(rules).toContain('char_count_out_of_range');
     expect(rules).toContain('missing_closing_question');
     expect(rules).toContain('hashtag_count_out_of_range');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Golden fixtures — good carousel (Phase C3)
+// ---------------------------------------------------------------------------
+
+describe('linkedin-validate golden fixtures — good carousel', () => {
+  it('input-good-carousel.json parses as ValidationInput with format=carousel', async () => {
+    const input = await loadJsonFixture(
+      'validate',
+      'input-good-carousel.json',
+      ValidationInputSchema,
+    );
+    expect(input.format).toBe('carousel');
+  });
+
+  it('good carousel input.post passes CarouselOutputSchema', async () => {
+    const input = await loadJsonFixture(
+      'validate',
+      'input-good-carousel.json',
+      ValidationInputSchema,
+    );
+    // discriminated union narrows by format
+    if (input.format !== 'carousel') throw new Error('expected carousel format');
+    const result = CarouselOutputSchema.safeParse(input.post);
+    if (!result.success) {
+      const issues = result.error.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ');
+      throw new Error(`good carousel should pass CarouselOutputSchema: ${issues}`);
+    }
+    expect(result.success).toBe(true);
+  });
+
+  it('expected-good-carousel-validation.json passes ValidationSchema', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-good-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out).toBeDefined();
+  });
+
+  it('expected-good-carousel-validation.json has passed=true AND depth_score >= 80', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-good-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out.passed).toBe(true);
+    expect(out.depth_score).toBeGreaterThanOrEqual(80);
+  });
+
+  it('expected-good-carousel-validation.json has format=carousel', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-good-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out.format).toBe('carousel');
+  });
+
+  it('expected-good-carousel-validation.json has zero critical failures', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-good-carousel-validation.json',
+      ValidationSchema,
+    );
+    const criticals = out.failures.filter((f) => f.severity === 'critical');
+    expect(criticals).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Golden fixtures — bad carousel (Phase C3)
+// ---------------------------------------------------------------------------
+
+describe('linkedin-validate golden fixtures — bad carousel', () => {
+  it('expected-bad-carousel-validation.json passes ValidationSchema (output contract)', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out).toBeDefined();
+  });
+
+  it('expected-bad-carousel-validation.json has passed=false AND depth_score < 80', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out.passed).toBe(false);
+    expect(out.depth_score).toBeLessThan(80);
+  });
+
+  it('expected-bad-carousel-validation.json has format=carousel', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out.format).toBe('carousel');
+  });
+
+  it('bad carousel failures contain ai_slop_phrase with severity critical', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const slop = out.failures.find((f) => f.rule === 'ai_slop_phrase');
+    expect(slop).toBeDefined();
+    expect(slop?.severity).toBe('critical');
+  });
+
+  it('bad carousel failures contain engagement_bait with severity critical', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const bait = out.failures.find((f) => f.rule === 'engagement_bait');
+    expect(bait).toBeDefined();
+    expect(bait?.severity).toBe('critical');
+  });
+
+  it('bad carousel failures contain carousel_external_link_in_slide (critical)', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const linkFailure = out.failures.find((f) => f.rule === 'carousel_external_link_in_slide');
+    expect(linkFailure).toBeDefined();
+    expect(linkFailure?.severity).toBe('critical');
+  });
+
+  it('bad carousel failures contain carousel_image_prompt_missing_copy_verbatim (D9 violation)', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const d9 = out.failures.find((f) => f.rule === 'carousel_image_prompt_missing_copy_verbatim');
+    expect(d9).toBeDefined();
+    expect(d9?.severity).toBe('critical');
+  });
+
+  it('bad carousel has at least 3 critical failures total', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const criticals = out.failures.filter((f) => f.severity === 'critical');
+    expect(criticals.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('bad carousel suggestions array has at least 3 actionable entries', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    expect(out.suggestions.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('bad carousel failures include carousel-specific rule ids (not just shared text rules)', async () => {
+    const out = await loadJsonFixture(
+      'validate',
+      'expected-bad-carousel-validation.json',
+      ValidationSchema,
+    );
+    const rules = out.failures.map((f) => f.rule);
+    // At least 2 rule ids starting with `carousel_` must appear.
+    const carouselRules = rules.filter((r) => r.startsWith('carousel_'));
+    expect(carouselRules.length).toBeGreaterThanOrEqual(2);
   });
 });

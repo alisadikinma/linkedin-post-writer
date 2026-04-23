@@ -1,0 +1,129 @@
+{
+  "depth_score": 0,
+  "passed": false,
+  "format": "carousel",
+  "failures": [
+    {
+      "rule": "ai_slop_phrase",
+      "message": "slide 1 copy contains banned phrase \"delve into\" — replace with a concrete number, a contrarian claim, or a first-person specific observation",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "slide 1: delve into"
+    },
+    {
+      "rule": "engagement_bait",
+      "message": "slide 8 copy contains engagement bait \"Comment YES\" — 2024+ ranker demotes posts whose comments are transactional; the Depth Score formula weights Comment Quality 15× so bait earns reach penalties",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "slide 8: Comment YES"
+    },
+    {
+      "rule": "engagement_bait",
+      "message": "slide 8 copy contains engagement bait \"Smash that like button\" — drop it and replace with a genuine 5+ word question",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "slide 8: Smash that like button"
+    },
+    {
+      "rule": "carousel_external_link_in_slide",
+      "message": "slide 4 copy contains https://evil.com/solopreneur-stack — links belong in the first comment, not on slides (link-in-comment discipline)",
+      "severity": "critical",
+      "deduction": 30,
+      "evidence": "slide 4: https://evil.com/solopreneur-stack"
+    },
+    {
+      "rule": "carousel_image_prompt_missing_copy_verbatim",
+      "message": "slide 1 image_prompt does not contain slide.copy verbatim — D9 text-baked-in rule violated; the image generator will render different typography than the copy field specifies",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "slide 1"
+    },
+    {
+      "rule": "carousel_image_prompt_missing_copy_verbatim",
+      "message": "slide 3 image_prompt paraphrases the copy instead of quoting it verbatim — D9 text-baked-in rule violated; the compositor needs the exact copy string in the prompt",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "slide 3"
+    },
+    {
+      "rule": "hook_strength_missing",
+      "message": "cover slide copy contains no digit, timeframe, contrarian marker, or curiosity-gap signal — the cover headline will not earn the scroll-stop",
+      "severity": "important",
+      "deduction": 20,
+      "evidence": "Let me delve into the AI solopreneur stack and tell you everything I think."
+    },
+    {
+      "rule": "carousel_missing_human_fingerprint",
+      "message": "deck has zero slides with layout_hint='human_fingerprint' — the authenticity slide (typically slides 3-5 per Build in Public structure) is the signal the LinkedIn ranker rewards",
+      "severity": "important",
+      "deduction": 10
+    },
+    {
+      "rule": "carousel_image_prompt_missing_dead_zone",
+      "message": "slide 1 image_prompt is missing mobile-safe-zone specs (top 150px, bottom 200px, 75px margin, 24pt body minimum, 1080x1350 canvas) — the compositor needs these to avoid the LinkedIn profile overlay and text-cutoff zones",
+      "severity": "important",
+      "deduction": 15,
+      "evidence": "slide 1"
+    },
+    {
+      "rule": "carousel_cta_missing_question",
+      "message": "CTA slide copy contains no question mark — without a 5+ word question the slide misses the reply prompt that drives Comment Quality (15× weight in the Depth Score formula)",
+      "severity": "important",
+      "deduction": 15,
+      "evidence": "Comment YES if you agree with this take on the solopreneur stack. Smash that like button."
+    },
+    {
+      "rule": "carousel_missing_direct_answer",
+      "message": "deck has zero slides with layout_hint='direct_answer' and non-empty direct_answer_block — the 30-80 word AI-search-scrapable summary is missing",
+      "severity": "important",
+      "deduction": 5
+    }
+  ],
+  "suggestions": [
+    {
+      "rule": "ai_slop_phrase",
+      "suggestion": "Replace slide 1's opener \"Let me delve into\" with a concrete metric or contrarian claim — e.g. \"12 client projects in 90 days taught me one thing about the solopreneur stack\"."
+    },
+    {
+      "rule": "engagement_bait",
+      "suggestion": "Delete \"Comment YES if you agree\" from slide 8 and replace with a genuine 5+ word question that invites a substantive reply, e.g. \"Which layer is breaking first in your stack right now?\""
+    },
+    {
+      "rule": "engagement_bait",
+      "suggestion": "Delete \"Smash that like button\" from slide 8 — like-baiting phrases are algorithm-demoted; let the content earn the like on its own merits."
+    },
+    {
+      "rule": "carousel_external_link_in_slide",
+      "suggestion": "Remove https://evil.com/solopreneur-stack from slide 4's copy. LinkedIn applies a ~60% reach penalty to posts with body/slide links — move the URL into the first comment of the post instead."
+    },
+    {
+      "rule": "carousel_image_prompt_missing_copy_verbatim",
+      "suggestion": "Rewrite slide 1's image_prompt to include the slide copy verbatim inside double quotes — the image generator must render that exact string as typography (D9 text-baked-in rule)."
+    },
+    {
+      "rule": "carousel_image_prompt_missing_copy_verbatim",
+      "suggestion": "Rewrite slide 3's image_prompt to quote the full slide copy verbatim instead of paraphrasing \"a quote about reasoning\". The compositor needs the literal string to render."
+    },
+    {
+      "rule": "hook_strength_missing",
+      "suggestion": "Rework the cover to include a number, a timeframe, or a contrarian marker in the first line — e.g. \"The 4-layer stack 82% of solopreneurs skip\" or \"I tested 30 tools. Only 4 layers matter.\""
+    },
+    {
+      "rule": "carousel_missing_human_fingerprint",
+      "suggestion": "Convert one of the body slides (typically slide 3, 4, or 5) into layout_hint='human_fingerprint' with a first-person war-story moment — specific client name or failure mode — to earn the authenticity signal."
+    },
+    {
+      "rule": "carousel_image_prompt_missing_dead_zone",
+      "suggestion": "Expand slide 1's image_prompt to specify: 1080x1350 canvas, 75px left/right margin, 150px top dead zone (profile overlay), 200px bottom dead zone, 24pt body minimum (or the pixel equivalent)."
+    },
+    {
+      "rule": "carousel_cta_missing_question",
+      "suggestion": "Rewrite slide 8's copy to end with a 5+ word question that invites a substantive reply — e.g. \"Which of these four layers is breaking first for you right now?\" Follow the question with the comment sign-off."
+    },
+    {
+      "rule": "carousel_missing_direct_answer",
+      "suggestion": "Add one slide with layout_hint='direct_answer' and a 30-80 word direct_answer_block that summarizes the deck's thesis for AI search scrapers (Perplexity, ChatGPT search)."
+    }
+  ],
+  "computed_at": "2026-04-23T08:30:00Z"
+}

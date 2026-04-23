@@ -10,20 +10,23 @@
  *   - CLAUDE.md §2026 LinkedIn Algorithm Mechanics → Depth Score formula,
  *     hard-fail rules, anti-slop vocabulary
  *   - docs/rag/linkedin-playbook/01-main-playbook.md §Depth Score Formula
+ *   - docs/rag/linkedin-playbook/06-carousel-design.md §Depth Score carousel
+ *     signals (slide count, dead zones, cover hook frameworks, direct-answer)
  *   - docs/plans/2026-04-23-plugin-architecture-full-auto.md §13 Addendum 3
  *     (plugin scope — content generation + validation only, no scheduling)
  *
- * Scope boundary:
- *   - B3 (this file): `format: 'text'` validation branch is production-ready.
- *   - C3 (future)    : `format: 'carousel'` branch is a PLACEHOLDER — the
- *                      ValidationInputSchema accepts a loose `{ slides: [] }`
- *                      shape; the real carousel output schema lands in C2 and
- *                      C3 replaces the placeholder with a discriminated match
- *                      against it.
+ * Scope boundary (Phase C3):
+ *   - `format: 'text'`     → post is a `ConvertOutput` (B2 contract)
+ *   - `format: 'carousel'` → post is a `CarouselOutput` (C2 contract). C3
+ *                            extends the rubric with 9 carousel-specific rules
+ *                            (12-20) on top of the shared content-level rules
+ *                            (ai_slop_phrase, engagement_bait) that apply to
+ *                            both formats via format-aware scanning.
  */
 
 import { z } from 'zod';
 
+import { CarouselOutputSchema } from '../linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../linkedin-convert/schema.js';
 
 /**
@@ -67,16 +70,12 @@ export type ValidationSuggestion = z.infer<typeof ValidationSuggestionSchema>;
  * Validation input envelope. Discriminated on `format` so the caller must
  * explicitly declare intent:
  *   - format='text'     → post is a `ConvertOutput` (B2 contract)
- *   - format='carousel' → post is a placeholder `{ slides: unknown[] }` shape
- *                          until C2 lands the real carousel output schema
+ *   - format='carousel' → post is a `CarouselOutput` (C2 contract)
  *
- * The skill prompt hard-stops on format='carousel' for B3 — carousel
- * validation is C3 scope.
+ * The text branch reuses ConvertOutputSchema verbatim; the carousel branch
+ * reuses CarouselOutputSchema verbatim — so any upstream breakage to those
+ * schemas is caught here at the contract layer, not silently at runtime.
  */
-const CarouselPlaceholderSchema = z
-  .object({ slides: z.array(z.unknown()) })
-  .passthrough();
-
 export const ValidationInputSchema = z.discriminatedUnion('format', [
   z.object({
     format: z.literal('text'),
@@ -84,7 +83,7 @@ export const ValidationInputSchema = z.discriminatedUnion('format', [
   }),
   z.object({
     format: z.literal('carousel'),
-    post: CarouselPlaceholderSchema,
+    post: CarouselOutputSchema,
   }),
 ]);
 

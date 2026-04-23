@@ -1,0 +1,74 @@
+{
+  "format": "carousel",
+  "post": {
+    "slides": [
+      {
+        "slide_number": 1,
+        "layout_hint": "cover",
+        "copy": "Let me delve into the AI solopreneur stack and tell you everything I think.",
+        "image_prompt": "Cover image with big text on a navy background. Make it look nice and modern for LinkedIn. Use a clean sans-serif font.",
+        "is_cover": true,
+        "is_cta": false
+      },
+      {
+        "slide_number": 2,
+        "layout_hint": "body",
+        "copy": "The four layers are reasoning, execution, memory, and distribution. Each one matters in its own way when building agents that work.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"The four layers are reasoning, execution, memory, and distribution. Each one matters in its own way when building agents that work.\" as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 2/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 3,
+        "layout_hint": "body",
+        "copy": "Reasoning is the layer where you pick a model. I use Claude and I recommend you do the same for almost every task.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake a quote about reasoning being the layer where you pick a model as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 3/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 4,
+        "layout_hint": "body",
+        "copy": "Check the full breakdown at https://evil.com/solopreneur-stack for every detail you could ever want to know about this.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"Check the full breakdown at https://evil.com/solopreneur-stack for every detail you could ever want to know about this.\" as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 4/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 5,
+        "layout_hint": "body",
+        "copy": "Execution is the hidden layer. Agents that actually touch your repo, your CRM, your invoicing — without you in the loop for every step.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"Execution is the hidden layer. Agents that actually touch your repo, your CRM, your invoicing — without you in the loop for every step.\" as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 5/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 6,
+        "layout_hint": "body",
+        "copy": "Memory is the layer nobody talks about until it breaks. Every session starting from zero context is a tax you pay every morning.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"Memory is the layer nobody talks about until it breaks. Every session starting from zero context is a tax you pay every morning.\" as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 6/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 7,
+        "layout_hint": "body",
+        "copy": "Distribution is the unsexy one. Nobody tweets about their distribution pipeline, but the first three layers without it are just an expensive hobby.",
+        "image_prompt": "Render a 1080x1350 portrait slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"Distribution is the unsexy one. Nobody tweets about their distribution pipeline, but the first three layers without it are just an expensive hobby.\" as Inter typography at 46 pixels tall (above the 24pt body minimum), wrapping across four lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 7/8.",
+        "is_cover": false,
+        "is_cta": false
+      },
+      {
+        "slide_number": 8,
+        "layout_hint": "cta",
+        "copy": "Comment YES if you agree with this take on the solopreneur stack. Smash that like button.",
+        "image_prompt": "Render a 1080x1350 portrait CTA slide on a deep navy background. Leave the top 150 pixels empty. Maintain a 75 pixel margin. Bake the exact copy \"Comment YES if you agree with this take on the solopreneur stack. Smash that like button.\" as Space Grotesk Bold typography at 48 pixels tall (above the 24pt body minimum), wrapping across three lines with generous leading. Leave the bottom 200 pixels empty except for a centered page indicator at 8/8.",
+        "is_cover": false,
+        "is_cta": true
+      }
+    ],
+    "total_slides": 8,
+    "hook_framework": "AIDA",
+    "structure": "build_in_public"
+  }
+}
