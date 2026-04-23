@@ -857,3 +857,122 @@ Post-launch metrics to collect (drives v1.1 re-litigation of D11):
 - `carousel_human_fingerprint_engagement_delta` — compare avg engagement of carousels vs text posts; if delta < 1.5× within first 20 carousels → escalate D11 re-design to v1.1 scope
 
 ---
+
+## 13. Addendum 3 — Plugin Scope Clarification (2026-04-23 session 3)
+
+### 13.1 Scope Correction
+
+The original plan (§1-12) conflated two distinct concerns that should be cleanly separated:
+
+- **Plugin concern (this repo):** generate great-quality LinkedIn content — briefs, text posts, carousels, quality validation via Depth Score. Pure content engineering.
+- **Portfolio_v2 admin panel concern (separate repo):** scheduling, publishing, OAuth, cron triggers, draft queue UI, status management, Telegram notifications, retry/cancel logic — all **operational** concerns.
+
+**This plugin is NOT responsible for:**
+- Scheduling posts (admin chooses when via frontend UI)
+- Publishing to LinkedIn (backend admin panel handles API/OAuth)
+- OAuth flow, token storage, token refresh
+- MixPost / any third-party publisher integration
+- Cron triggers, job queues, retry logic
+- Telegram notifications, cancel windows, kill-switches
+- Draft queue management, admin override flow
+
+**This plugin IS responsible for:**
+- `linkedin-brief` skill — blog → strategic brief JSON
+- `linkedin-convert` skill — brief + blog → text post JSON
+- `linkedin-carousel` skill — brief + blog → carousel slides JSON (Phase C2)
+- `linkedin-validate` skill — Depth Score + hard-fail rules on any post (text or carousel)
+- `linkedin-gen` orchestrator — chains `brief → convert|carousel → validate`, outputs final draft JSON
+- `linkedin-writer` agent — batch wrapper around orchestrator
+
+### 13.2 Interface Contract (plugin ↔ admin panel)
+
+The admin panel invokes the plugin via Claude CLI subprocess (same SSH pattern as sibling `article-content-writer`). Plugin emits a single JSON output per invocation:
+
+```json
+{
+  "format": "text" | "carousel",
+  "brief": { ... },
+  "post": {
+    "post_text": "...",
+    "link_comment": "...",
+    "hashtags": ["..."],
+    ...
+  } | null,
+  "carousel": {
+    "slides": [ ... ],
+    ...
+  } | null,
+  "validation": {
+    "depth_score": 87,
+    "passed": true,
+    "failures": [],
+    "suggestions": [...]
+  }
+}
+```
+
+Admin panel stores this blob, renders it for human review, and handles all downstream operational flow (schedule, publish, notify, retry, cancel). The plugin has zero knowledge of publishing targets.
+
+### 13.3 Phases Removed from Plugin Scope
+
+The following phases from §8 Implementation Timeline + the companion plan doc are **OUT OF SCOPE** for this plugin and belong to a Portfolio_v2 backend project plan (to be authored separately):
+
+| Phase | Original description | New status |
+|---|---|---|
+| **B4** | `linkedin-schedule` skill (backend bridge) | **DROPPED**. Admin panel POSTs plugin output directly to its own storage — no "schedule" skill needed. If admin wants a bridge action it's frontend code, not a plugin skill. |
+| **Entire Phase D** | Portfolio_v2 backend wiring (migration, FSM, MixPost, OAuth, Telegram, PDF, cron, admin UI) | **OUT OF PLUGIN SCOPE**. Belongs to Portfolio_v2 repo + its own design doc. This plugin repo stops tracking Phase D. |
+| **Phase E6** | Managed Agents upload | **STAYS IN PLUGIN SCOPE**. Plugin-side operational concern. |
+
+### 13.4 Incidental Finding — MixPost OSS Does Not Support LinkedIn
+
+During this session, source-code inspection of `github.com/inovector/Mixpost/tree/main/src/SocialProviders` revealed MixPost Lite (OSS) only ships `Mastodon/`, `Meta/`, and `Twitter/` providers. No LinkedIn. Pro/paid SKU has LinkedIn, but Design Decision #6 explicitly rejected paid SaaS.
+
+**Implication (for backend team, not this plugin):** Portfolio_v2 backend must use a different publishing path. Likely candidates:
+1. Direct LinkedIn API via LinkedIn v2 REST (`w_member_social` scope, `/ugcPosts` endpoint)
+2. Alternative OSS scheduler (e.g., Postiz — supports LinkedIn natively)
+3. Something else the backend team decides
+
+**This is NOT a plugin concern.** Noted here only because it was discovered during plugin design work and backend team should know before picking up Phase D equivalent in their repo.
+
+### 13.5 Simplified Plugin Pipeline
+
+```
+Blog post markdown
+        │
+        ▼
+  linkedin-brief  ──► brief JSON (format decision, hook, pillar, pull_quote, angle)
+        │
+        ▼
+ ┌──────┴──────┐
+ │             │
+ ▼             ▼
+linkedin-     linkedin-
+convert       carousel
+ │             │
+ └──────┬──────┘
+        │
+        ▼
+ linkedin-validate  ──► depth_score + failures[] + suggestions[]
+        │
+        ▼
+  Final draft JSON
+        │
+        ▼
+   [END OF PLUGIN]
+        │
+   admin panel takes over (store, review, edit, publish, etc.)
+```
+
+### 13.6 Updated Success Criteria (Plugin v1.0)
+
+Supersedes §10 Success Metrics (which mixed plugin + backend metrics):
+
+- All 5 skills ship with contract-mode tests passing (≥90% per-skill coverage)
+- `linkedin-gen` orchestrator output validates against downstream schema (`BriefSchema`, `ConvertOutputSchema`, `CarouselOutputSchema`, `ValidationSchema`)
+- Plugin runs standalone via `claude -p "/linkedin-gen <blog-url-or-markdown>"` and emits valid JSON to stdout
+- Phase B6 + C4 smoke tests on real Ali Sadikin blogs produce Depth Score ≥80 on ≥70% of runs
+- Zero dependencies on Portfolio_v2 backend (plugin can be used from any Claude CLI invocation, not just SSH-triggered from backend)
+
+Backend operational success metrics (throughput, cancel rate, time-to-publish) are tracked in Portfolio_v2's own docs.
+
+---

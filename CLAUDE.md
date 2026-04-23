@@ -1,8 +1,10 @@
 # LinkedIn Post Writer — Claude Project Instructions
 
-> **Status (2026-04-23):** Design + implementation plan complete + **Addendum 2 closes all 7 remaining Open Questions**. Plugin scaffold is **NOT YET BUILT**. Next session must start at Phase A1 via `/gaspol-execute`.
+> **Status (2026-04-23):** Design + implementation plan complete + **Addendum 2 closes Phase 3 carousel + webhook Open Questions** + **Addendum 3 sharpens plugin scope to content-generation-only**. Phase A complete (plugin skeleton, 6 commits). Phase B1-B2 complete (linkedin-brief + linkedin-convert skills). Phase B3, B5, C2 remaining in-plugin.
 >
-> **Addendum 2 (2026-04-23 session 2)** — see design doc §12 — locks: slide composition = text-baked-in-AI-prompt (D9), PDF lib = TCPDF (D10), Human Fingerprint = `creator_brand_logo` reuse (D11 ⚠️ **flagged** for v1.1 re-litigation if Depth Score median < 82), `carousel_slides` JSON = flat slide array (D12), link-in-comment = delayed LinkedIn API job via `LinkedInCommentService` (D13), Telegram webhook = 2-layer sig (`secret_token` header + HMAC callback_data) + 2-step cancel confirm (D14a/b). Plan file has updated Phase D9 + D11 + new Phase D11b.
+> **Addendum 2 (2026-04-23 session 2)** — see design doc §12 — locks content/design decisions: slide composition = text-baked-in-AI-prompt (D9), PDF lib = TCPDF (D10 — **backend concern per Addendum 3**), Human Fingerprint = `creator_brand_logo` reuse (D11 ⚠️ flagged), `carousel_slides` JSON = flat slide array (D12 — **plugin concern, retained**), link-in-comment content = blog URL + 1-2 sentence context (D13 — **backend concern per Addendum 3**), Telegram webhook 2-layer sig + 2-step cancel (D14a/b — **backend concern per Addendum 3**). Retained plugin-side: D9, D11, D12.
+>
+> **Addendum 3 (2026-04-23 session 3)** — see design doc §13 — **plugin = content generation only.** Scheduling, publishing, OAuth, cron, MixPost, Telegram notifications, admin UI = **Portfolio_v2 backend scope**, tracked separately. Plugin emits JSON via `claude -p "/linkedin-gen ..."`, admin panel handles everything downstream. Phase B4 (`linkedin-schedule` skill) DROPPED. Entire Phase D (backend wiring) OUT OF PLUGIN SCOPE. Incidental finding (for backend team): MixPost OSS only supports Mastodon/Meta/Twitter — no LinkedIn; backend must pick a different path (direct LinkedIn API / Postiz / etc).
 
 ## Project Overview
 
@@ -106,7 +108,7 @@ See design doc Section 2 for rationale. These are **NOT up for re-litigation** w
 | 3 | Safety gates | (a) Depth Score ≥80 hard threshold, (b) Telegram 15-min cancel window, (c) `LINKEDIN_AUTO_PUBLISH` env kill-switch |
 | 4 | Scope v1.0 | Text + 7-10 slide carousel only. No video, no multi-image, no GIF |
 | 5 | Research-backed carousel design | RAG 06 generated via NotebookLM — drives `linkedin-carousel` skill |
-| 6 | MixPost OSS | `inovector/mixpost` composer package. No SaaS middleware |
+| 6 | ~~MixPost OSS~~ **OUT OF PLUGIN SCOPE** (Addendum 3) | Publishing vendor choice belongs to Portfolio_v2 backend, not this plugin. For backend team reference: MixPost Lite has no LinkedIn provider (verified 2026-04-23), so backend must pick direct LinkedIn API or alternative. |
 | 7 | Uniform Sonnet model | All skills use Sonnet. No Opus (cost/quality sweet spot) |
 | 8 | Single canonical post per blog v1.0 | No A/B variation rotation |
 
@@ -233,7 +235,9 @@ pending_generation → generating → validating → awaiting_publish → publis
 
 Illegal transitions throw `InvalidStateTransitionException`. Audit log in `pipeline_state_log` JSON column (rotating 20 entries). All transitions wrapped in `PipelineGuard::advance` for uniform logging.
 
-## Environment Variables (Portfolio_v2 .env)
+## Environment Variables (Portfolio_v2 .env — reference only, NOT plugin-consumed)
+
+> **Scope note (Addendum 3):** Per plugin = content generation only, the env vars below live in Portfolio_v2 backend `.env`. This plugin has **zero env var dependencies**. Listed here as reference for the backend team implementing the operational layer (scheduling, publishing, cron). If you are working on plugin skills, ignore this section.
 
 Set on VPS during deployment. Full list in design doc Section 4.4:
 
@@ -265,8 +269,8 @@ LINKEDIN_GEN_MODEL_CONVERT=sonnet
 LINKEDIN_GEN_MODEL_CAROUSEL=sonnet
 LINKEDIN_GEN_MODEL_VALIDATE=sonnet
 
-# MixPost (set after OAuth connect)
-MIXPOST_LINKEDIN_ACCOUNT_ID=...
+# (Per Addendum 3 — OAuth, publishing, cron env vars all moved to Portfolio_v2 backend .env)
+# This plugin has NO env vars for OAuth/publishing/cron. Plugin is pure content generation.
 
 # Telegram event flags
 TELEGRAM_NOTIFY_LINKEDIN_PREVIEW=true
@@ -285,7 +289,9 @@ LINKEDIN_FIRST_COMMENT_DELAY_SECONDS=30
 LINKEDIN_PDF_TEMP_DIR=/tmp/linkedin-pdfs
 ```
 
-## Backend Integration (Portfolio_v2)
+## Backend Integration (Portfolio_v2 — reference only, NOT plugin scope)
+
+> **Scope note (Addendum 3):** This entire section describes work that happens in the **Portfolio_v2 backend repo**, not this plugin. Listed here because the original design doc conflated plugin + backend concerns. Backend team owns these artifacts. Plugin developers: ignore this section; your deliverable is JSON output from `claude -p /linkedin-gen`.
 
 ### New tables
 - `linkedin_posts` (24 cols — see design doc §4.2) — schema finalized, migration in Phase D1
@@ -431,12 +437,13 @@ When opening a new session in `D:\Projects\claude-plugin\linkedin-post-writer`:
 
 Executor MUST pause and ask user at these points (flagged in plan):
 
-1. **Phase D7** — `composer require inovector/mixpost` (confirm install + OAuth step)
-2. **Phase D7 step 4** — MixPost admin UI manual OAuth connect (user provides `MIXPOST_LINKEDIN_ACCOUNT_ID`)
-3. ~~**Phase D11** — PDF library choice~~ ✅ **Resolved per Addendum 2 D10: TCPDF locked, no stop needed**
-4. **Phase D9** — Telegram webhook public endpoint confirmation + generate `TELEGRAM_WEBHOOK_SECRET` + `TELEGRAM_CALLBACK_HMAC_KEY` (2-layer sig approach locked per D14a)
-5. **Phase D11b (NEW)** — LinkedIn API `/socialActions/{urn}/comments` smoke test. If 403 on own-post comment (unlikely for Personal account), fallback to Telegram manual-paste flow
-6. **Phase E6** — Managed Agents upload confirmation (optional, defer if not ready)
+**Plugin-scope stop-points (Phase A/B/C/E6 only):**
+
+1. **Phase E6** — Managed Agents upload confirmation (optional, defer if not ready)
+
+**Backend-scope stop-points (Phase D — OUT OF PLUGIN SCOPE, Portfolio_v2 repo tracks these):**
+
+All Phase D stop-points (MixPost install, OAuth, Telegram webhook, LinkedIn API smoke test, etc.) moved to Portfolio_v2 backend. If you are working on this plugin, you will never hit a Phase D stop-point. Reference-only: the backend team needs to resolve MixPost replacement (per Addendum 3 §13.4), Telegram webhook signing (Addendum 2 D14a), and LinkedIn API OAuth scopes before they can wire up their operational layer.
 
 Additional stop-points from plan §Open Decisions — see plan file.
 
