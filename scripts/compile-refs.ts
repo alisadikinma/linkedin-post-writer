@@ -108,15 +108,19 @@ async function buildBundle(
   return { file: spec.outputFile, bytes: s.size };
 }
 
-export async function compileRefs(options: CompileRefsOptions): Promise<void> {
+export async function compileRefs(
+  options: CompileRefsOptions,
+): Promise<Array<{ file: string; bytes: number }>> {
   const inputDir = resolve(options.inputDir);
   const outputDir = resolve(options.outputDir);
 
   await mkdir(outputDir, { recursive: true });
 
+  const results: Array<{ file: string; bytes: number }> = [];
   for (const spec of BUNDLES) {
-    await buildBundle(inputDir, outputDir, spec);
+    results.push(await buildBundle(inputDir, outputDir, spec));
   }
+  return results;
 }
 
 async function runCli(): Promise<void> {
@@ -126,13 +130,7 @@ async function runCli(): Promise<void> {
   const inputDir = join(rootDir, 'docs', 'rag', 'linkedin-playbook');
   const outputDir = join(rootDir, 'references', 'compiled');
 
-  await mkdir(outputDir, { recursive: true });
-
-  const results: Array<{ file: string; bytes: number }> = [];
-  for (const spec of BUNDLES) {
-    const res = await buildBundle(inputDir, outputDir, spec);
-    results.push(res);
-  }
+  const results = await compileRefs({ inputDir, outputDir });
 
   process.stdout.write('Compiled reference files:\n');
   for (const { file, bytes } of results) {
@@ -143,8 +141,6 @@ async function runCli(): Promise<void> {
 
 // CLI entrypoint: only run when executed directly via tsx/node, not when imported.
 const invokedDirectly =
-  typeof process !== 'undefined' &&
-  Array.isArray(process.argv) &&
   process.argv[1] !== undefined &&
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
