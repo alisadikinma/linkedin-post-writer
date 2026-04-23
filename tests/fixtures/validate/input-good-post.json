@@ -1,0 +1,16 @@
+{
+  "format": "text",
+  "post": {
+    "post_text": "18 months and 12 client projects later, I finally have a stack I defend.\n\nMost AI solopreneur advice is a tool dump. Thirty apps, a subscription list, good luck.\nThat is not a stack. That is a credit card statement.\n\nA real stack has 4 layers. Reasoning. Execution. Memory. Distribution.\nEach layer does one job the layer above it cannot do for itself.\n\nThe test is this: after you close the laptop, is work still happening? If yes, you have an execution layer. If no, you have an expensive chatbot.\n\nMost solopreneurs stop at layer one. They pay for a reasoning model, then burn afternoons copy-pasting into twelve browser tabs.\n\nLayer two is where the real work hides: agents that actually touch your repo, your CRM, your invoicing — without you in the loop.\n\nLayer three is the one nobody talks about until it breaks. Memory. Every session starting from zero context is a tax you pay every morning.\n\nLayer four is distribution. The unsexy one. Nobody tweets about their distribution pipeline, but layers one to three without it are just an expensive hobby.\n\nWhen I onboard another solopreneur, I never ask which tools they use.\nI ask which layer breaks first when they try to scale past themselves.\n\nWhich one is breaking first for you right now?",
+    "link_comment": "The onboarding test I run on every solopreneur client — and the 4 failure modes I have seen in the wild: https://alisadikinma.com/blog/ai-solopreneur-stack",
+    "hashtags": [
+      "#AISolopreneur",
+      "#AIAgents",
+      "#IndieMaker",
+      "#AI"
+    ],
+    "char_count": 1249,
+    "paragraph_count": 10,
+    "hook_used": "18 months and 12 client projects later, I finally have a stack I defend."
+  }
+}

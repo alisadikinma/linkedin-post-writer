@@ -1,0 +1,93 @@
+{
+  "depth_score": 0,
+  "passed": false,
+  "format": "text",
+  "failures": [
+    {
+      "rule": "external_link_in_body",
+      "message": "post_text contains https://evil.com/landing-page — body links trigger 60% reach penalty (link-in-comment only)",
+      "severity": "critical",
+      "deduction": 30,
+      "evidence": "https://evil.com/landing-page"
+    },
+    {
+      "rule": "ai_slop_phrase",
+      "message": "post_text contains banned phrase \"delve into\" — replace with a concrete number, a contrarian claim, or a first-person specific observation",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "delve into"
+    },
+    {
+      "rule": "engagement_bait",
+      "message": "post_text contains engagement bait \"Comment YES\" — 2024+ ranker demotes posts whose comments are transactional; the Depth Score formula weights Comment Quality 15× so bait earns reach penalties",
+      "severity": "critical",
+      "deduction": 20,
+      "evidence": "Comment YES"
+    },
+    {
+      "rule": "hook_strength_missing",
+      "message": "first 3 lines contain no digit, timeframe, contrarian marker, or curiosity-gap signal — hook will not earn the \"see more\" click",
+      "severity": "important",
+      "deduction": 20,
+      "evidence": "Let me delve into the AI solopreneur stack with you today."
+    },
+    {
+      "rule": "char_count_out_of_range",
+      "message": "post_text is 800 chars — below the 1100-1300 dwell-time sweet spot; add more specific proof (a number, a timeframe, a client example)",
+      "severity": "important",
+      "deduction": 15,
+      "evidence": "800"
+    },
+    {
+      "rule": "missing_closing_question",
+      "message": "post_text does not end with a question — missing the 5+ word reply prompt that drives Comment Quality (15× weight in the Depth Score formula)",
+      "severity": "important",
+      "deduction": 15
+    },
+    {
+      "rule": "hashtag_count_out_of_range",
+      "message": "6 hashtags provided (1 above the 3-5 range) — 10+ hashtags trigger a −15% reach penalty per the Oct-2024 algorithm change",
+      "severity": "important",
+      "deduction": 5,
+      "evidence": "6"
+    },
+    {
+      "rule": "link_comment_missing_url",
+      "message": "link_comment does not contain an http(s) URL — the whole point of the first comment is to carry the blog URL without eating the body-link penalty",
+      "severity": "important",
+      "deduction": 10,
+      "evidence": "Check the full breakdown."
+    }
+  ],
+  "suggestions": [
+    {
+      "rule": "external_link_in_body",
+      "suggestion": "Move https://evil.com/landing-page out of post_text and into the link_comment payload — LinkedIn applies a ~60% reach penalty to posts with body links."
+    },
+    {
+      "rule": "ai_slop_phrase",
+      "suggestion": "Replace \"Let me delve into\" with a concrete opener — a proprietary number (\"18 months and 12 client projects taught me…\") or a contrarian claim (\"Everyone is wrong about the stack.\")."
+    },
+    {
+      "rule": "engagement_bait",
+      "suggestion": "Delete \"Comment YES if you agree\" and replace with a genuine question that prompts a 5+ word reply, e.g. \"Which layer is breaking first for you right now?\""
+    },
+    {
+      "rule": "char_count_out_of_range",
+      "suggestion": "Grow the post to 1100-1300 chars by adding the specific client example, timeframe, and failure mode from the source blog — do not pad with filler."
+    },
+    {
+      "rule": "missing_closing_question",
+      "suggestion": "End with a 5+ word question that invites a real answer (not a yes/no). Example: \"Which layer is the one breaking first when you try to scale past yourself?\""
+    },
+    {
+      "rule": "hashtag_count_out_of_range",
+      "suggestion": "Drop one hashtag to stay within 3-5. Keep the pillar tag + one niche + one broad."
+    },
+    {
+      "rule": "link_comment_missing_url",
+      "suggestion": "Append the blog URL to link_comment so the link-in-comment pattern actually delivers the click target."
+    }
+  ],
+  "computed_at": "2026-04-23T08:30:00Z"
+}
