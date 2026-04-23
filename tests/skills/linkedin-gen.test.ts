@@ -36,6 +36,7 @@ import {
   BriefSchema,
   type Brief,
 } from '../../skills/linkedin-brief/schema.js';
+import { CarouselOutputSchema } from '../../skills/linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../../skills/linkedin-convert/schema.js';
 import {
   OrchestratorInputSchema,
@@ -346,8 +347,12 @@ describe('linkedin-gen schema.ts contract', () => {
     }
   });
 
-  it('OrchestratorOutputSchema rejects status=deferred_to_phase_c + format=text', () => {
-    const bad = {
+  it('OrchestratorOutputSchema accepts status=deferred_to_phase_c regardless of format (escape hatch, post-C2)', () => {
+    // Post-C2 the deferred status is a generic escape hatch for any future
+    // format lacking a converter. format=text + all-nulls is technically
+    // valid now (no-op deferral). Schema only requires all three output
+    // slots are null — format is irrelevant.
+    const ok = {
       status: 'deferred_to_phase_c' as const,
       format: 'text' as const,
       brief: validBrief,
@@ -355,15 +360,11 @@ describe('linkedin-gen schema.ts contract', () => {
       carousel: null,
       validation: null,
     };
-    const result = OrchestratorOutputSchema.safeParse(bad);
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const msgs = result.error.issues.map((i) => i.message).join('|');
-      expect(msgs).toMatch(/format=carousel|carousel/);
-    }
+    const result = OrchestratorOutputSchema.safeParse(ok);
+    expect(result.success).toBe(true);
   });
 
-  it('OrchestratorOutputSchema rejects status=complete + format=carousel (Phase C2 migration guard)', () => {
+  it('OrchestratorOutputSchema rejects status=complete + format=carousel without non-null carousel (invariant 2)', () => {
     const bad = {
       status: 'complete' as const,
       format: 'carousel' as const,
@@ -376,7 +377,7 @@ describe('linkedin-gen schema.ts contract', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const msgs = result.error.issues.map((i) => i.message).join('|');
-      expect(msgs).toMatch(/Phase C2|deferred_to_phase_c/);
+      expect(msgs).toMatch(/requires non-null carousel/);
     }
   });
 
@@ -611,13 +612,13 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
     expect(out).toBeDefined();
   });
 
-  it('expected-listicle-draft.json has status=deferred_to_phase_c', async () => {
+  it('expected-listicle-draft.json has status=complete (post-C2 carousel wired)', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
       OrchestratorOutputSchema,
     );
-    expect(out.status).toBe('deferred_to_phase_c');
+    expect(out.status).toBe('complete');
   });
 
   it('expected-listicle-draft.json has format=carousel', async () => {
@@ -629,7 +630,7 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
     expect(out.format).toBe('carousel');
   });
 
-  it('expected-listicle-draft.json has post=null', async () => {
+  it('expected-listicle-draft.json has post=null (carousel path, not text)', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
@@ -638,22 +639,27 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
     expect(out.post).toBeNull();
   });
 
-  it('expected-listicle-draft.json has carousel=null', async () => {
+  it('expected-listicle-draft.json has non-null carousel with 9 slides', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
       OrchestratorOutputSchema,
     );
-    expect(out.carousel).toBeNull();
+    expect(out.carousel).not.toBeNull();
+    expect(out.carousel?.total_slides).toBe(9);
+    expect(out.carousel?.slides).toHaveLength(9);
   });
 
-  it('expected-listicle-draft.json has validation=null', async () => {
+  it('expected-listicle-draft.json has non-null validation with depth_score >= 80', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
       OrchestratorOutputSchema,
     );
-    expect(out.validation).toBeNull();
+    expect(out.validation).not.toBeNull();
+    expect(out.validation?.passed).toBe(true);
+    expect(out.validation?.depth_score).toBeGreaterThanOrEqual(80);
+    expect(out.validation?.format).toBe('carousel');
   });
 
   it('expected-listicle-draft.json brief matches B1 listicle fixture', async () => {
@@ -668,6 +674,20 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
       BriefSchema,
     );
     expect(genOut.brief).toEqual(briefFixture);
+  });
+
+  it('expected-listicle-draft.json carousel matches C2 listicle fixture (cross-skill composition)', async () => {
+    const genOut = await loadJsonFixture(
+      'gen',
+      'expected-listicle-draft.json',
+      OrchestratorOutputSchema,
+    );
+    const carouselFixture = await loadJsonFixture(
+      'carousel',
+      'expected-listicle.json',
+      CarouselOutputSchema,
+    );
+    expect(genOut.carousel).toEqual(carouselFixture);
   });
 });
 
@@ -730,11 +750,16 @@ describe('linkedin-gen cross-skill composition', () => {
     expect(onDisk).toEqual(composed);
   });
 
-  it('listicle draft = { brief (B1 listicle) + nulls } deep-equal match', async () => {
+  it('listicle draft = { brief (B1) + carousel (C2) + carousel-validation } deep-equal match', async () => {
     const brief = await loadJsonFixture(
       'brief',
       'expected-listicle.json',
       BriefSchema,
+    );
+    const carousel = await loadJsonFixture(
+      'carousel',
+      'expected-listicle.json',
+      CarouselOutputSchema,
     );
 
     const raw = await readFile(
@@ -749,13 +774,16 @@ describe('linkedin-gen cross-skill composition', () => {
     );
     const onDisk = JSON.parse(raw) as OrchestratorOutput;
 
+    // Validation is carousel-format placeholder until C3 authors the
+    // canonical carousel-validation fixture; reuse the on-disk value so the
+    // composition deep-equal check still asserts every other slot.
     const composed = {
-      status: 'deferred_to_phase_c' as const,
+      status: 'complete' as const,
       format: 'carousel' as const,
       brief,
       post: null,
-      carousel: null,
-      validation: null,
+      carousel,
+      validation: onDisk.validation,
       generated_at: onDisk.generated_at,
     };
 

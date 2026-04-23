@@ -8,23 +8,24 @@
  * Scope boundary (Addendum 3):
  *   - The orchestrator generates content. It does NOT publish, schedule,
  *     notify, or call a backend. The admin panel owns downstream action.
- *   - Phase C (linkedin-carousel, C2) is not yet built. When the brief routes
- *     to `carousel`, the orchestrator emits `status: 'deferred_to_phase_c'`
- *     and skips the convert + validate steps entirely. The `carousel` slot is
- *     always `null` in this B5 contract; C2 replaces the slot with a real
- *     carousel output schema.
+ *   - Phase C2 wired carousel in: when brief routes to `carousel`, the
+ *     orchestrator invokes `linkedin-carousel` and emits `status: 'complete'`
+ *     with `carousel` populated (no longer deferred). The `deferred_to_phase_c`
+ *     status is retained as a safety escape hatch for any future format that
+ *     doesn't yet have a converter.
  *
  * Design sources:
  *   - docs/plans/2026-04-23-plugin-architecture-full-auto.md §13 Addendum 3
  *     (plugin scope boundary — content generation only)
- *   - docs/plans/2026-04-23-plugin-architecture-full-auto-plan.md §Phase B5
- *     (orchestrator contract + FSM for status transitions)
+ *   - docs/plans/2026-04-23-plugin-architecture-full-auto-plan.md §Phase B5 + C2
+ *     (orchestrator contract + carousel wiring)
  *   - CLAUDE.md §Pipeline Flow (conceptual pipeline — scope-reduced here)
  */
 
 import { z } from 'zod';
 
 import { BriefSchema } from '../linkedin-brief/schema.js';
+import { CarouselOutputSchema } from '../linkedin-carousel/schema.js';
 import {
   BlogSourceSchema,
   ConvertOutputSchema,
@@ -60,7 +61,7 @@ export type OrchestratorInput = z.infer<typeof OrchestratorInputSchema>;
  */
 export const OrchestratorStatusSchema = z.enum([
   'complete',
-  'deferred_to_phase_c',
+  'deferred_to_phase_c', // retained as escape hatch for future formats without converters; carousel is no longer deferred
   'failed',
 ]);
 
@@ -73,7 +74,7 @@ export type OrchestratorStatus = z.infer<typeof OrchestratorStatusSchema>;
  * etc.) without parsing free-form strings.
  */
 export const OrchestratorErrorSchema = z.object({
-  step: z.enum(['brief', 'convert', 'validate']),
+  step: z.enum(['brief', 'convert', 'carousel', 'validate']),
   message: z.string().min(10),
   zod_issues: z.array(z.unknown()).optional(),
 });
@@ -84,12 +85,14 @@ export type OrchestratorError = z.infer<typeof OrchestratorErrorSchema>;
  * Orchestrator output — the single JSON blob the admin panel consumes.
  *
  * Invariants (enforced via superRefine):
- *   1. status='complete' + format='text' ⇒ post non-null AND validation non-null
- *   2. status='deferred_to_phase_c' ⇒ format='carousel' AND post=null
- *   3. status='failed' ⇒ error block present
+ *   1. status='complete' + format='text' ⇒ post non-null AND validation non-null AND carousel null
+ *   2. status='complete' + format='carousel' ⇒ carousel non-null AND validation non-null AND post null (Phase C2 wiring)
+ *   3. status='deferred_to_phase_c' ⇒ all three of post/carousel/validation are null
+ *   4. status='failed' ⇒ error block present
  *
- * The `carousel` slot is always `null` in B5 — Phase C2 replaces the schema
- * field with a discriminated-union CarouselOutputSchema when it lands.
+ * Post-C2 the carousel slot is a real CarouselOutputSchema (nullable). The
+ * deferred_to_phase_c status is retained as a future escape hatch, not as
+ * the default carousel path.
  */
 export const OrchestratorOutputSchema = z
   .object({
@@ -97,73 +100,93 @@ export const OrchestratorOutputSchema = z
     format: z.enum(['text', 'carousel']),
     brief: BriefSchema,
     post: ConvertOutputSchema.nullable(),
-    carousel: z.null(),
+    carousel: CarouselOutputSchema.nullable(),
     validation: ValidationSchema.nullable(),
     error: OrchestratorErrorSchema.optional(),
     generated_at: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Invariant 1 — complete text path requires both post + validation.
+    // Invariant 1 — complete text path requires post + validation; carousel absent.
     if (data.status === 'complete' && data.format === 'text') {
       if (data.post === null) {
         ctx.addIssue({
           code: 'custom',
-          message:
-            'status=complete + format=text requires non-null post',
+          message: 'status=complete + format=text requires non-null post',
           path: ['post'],
         });
       }
       if (data.validation === null) {
         ctx.addIssue({
           code: 'custom',
-          message:
-            'status=complete + format=text requires non-null validation',
+          message: 'status=complete + format=text requires non-null validation',
           path: ['validation'],
+        });
+      }
+      if (data.carousel !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=complete + format=text requires carousel=null',
+          path: ['carousel'],
         });
       }
     }
 
-    // Invariant 2 — deferred_to_phase_c is the carousel-only escape hatch.
-    if (data.status === 'deferred_to_phase_c') {
-      if (data.format !== 'carousel') {
+    // Invariant 2 — complete carousel path requires carousel + validation; post absent.
+    if (data.status === 'complete' && data.format === 'carousel') {
+      if (data.carousel === null) {
         ctx.addIssue({
           code: 'custom',
-          message:
-            'status=deferred_to_phase_c requires format=carousel',
-          path: ['status'],
+          message: 'status=complete + format=carousel requires non-null carousel',
+          path: ['carousel'],
+        });
+      }
+      if (data.validation === null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=complete + format=carousel requires non-null validation',
+          path: ['validation'],
         });
       }
       if (data.post !== null) {
         ctx.addIssue({
           code: 'custom',
-          message:
-            'status=deferred_to_phase_c must have post=null (carousel convert is C2 scope)',
+          message: 'status=complete + format=carousel requires post=null',
           path: ['post'],
         });
       }
     }
 
-    // Invariant 3 — failed must surface a structured error block.
+    // Invariant 3 — deferred_to_phase_c: all output slots null (escape hatch).
+    if (data.status === 'deferred_to_phase_c') {
+      if (data.post !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=deferred_to_phase_c must have post=null',
+          path: ['post'],
+        });
+      }
+      if (data.carousel !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=deferred_to_phase_c must have carousel=null',
+          path: ['carousel'],
+        });
+      }
+      if (data.validation !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=deferred_to_phase_c must have validation=null',
+          path: ['validation'],
+        });
+      }
+    }
+
+    // Invariant 4 — failed must surface a structured error block.
     if (data.status === 'failed' && !data.error) {
       ctx.addIssue({
         code: 'custom',
-        message:
-          'status=failed requires error block (step + message)',
+        message: 'status=failed requires error block (step + message)',
         path: ['error'],
-      });
-    }
-
-    // Invariant 4 — carousel cannot be `complete` until Phase C2 ships.
-    // Guards the unintended state { status: complete, format: carousel, post: null }
-    // which is syntactically valid but semantically impossible pre-C2 (no carousel
-    // converter exists yet). Phase C2 will relax this — the `carousel` slot
-    // becomes non-null and this invariant flips to require non-null carousel.
-    if (data.status === 'complete' && data.format === 'carousel') {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'status=complete + format=carousel is not valid until Phase C2 ships the carousel skill; use status=deferred_to_phase_c instead',
-        path: ['status'],
       });
     }
   });

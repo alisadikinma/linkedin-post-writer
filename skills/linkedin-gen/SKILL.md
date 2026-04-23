@@ -9,9 +9,9 @@ triggers: [linkedin-gen, generate linkedin post, blog to linkedin, gen linkedin]
 
 ## Purpose
 
-Chain the three content-generation sub-skills (`linkedin-brief` → `linkedin-convert` → `linkedin-validate`) into a single draft JSON that the admin panel consumes. This skill OWNS the pipeline control flow and OWNS NOTHING downstream of it. The orchestrator does NOT publish. It does NOT schedule. It does NOT notify. It does NOT call any backend. The plugin's scope per Addendum 3 is **content generation only** — the admin panel reads the output JSON, shows it to the operator, and decides whether to publish, edit, cancel, or discard.
+Chain the content-generation sub-skills (`linkedin-brief` → `linkedin-convert` OR `linkedin-carousel` → `linkedin-validate`) into a single draft JSON that the admin panel consumes. This skill OWNS the pipeline control flow and OWNS NOTHING downstream of it. The orchestrator does NOT publish. It does NOT schedule. It does NOT notify. It does NOT call any backend. The plugin's scope per Addendum 3 is **content generation only** — the admin panel reads the output JSON, shows it to the operator, and decides whether to publish, edit, cancel, or discard.
 
-The text path is production-ready in B5. The carousel path is **deferred to Phase C2** (`linkedin-carousel` skill) and Phase C3 (`linkedin-validate` carousel branch). When a brief routes to `format: 'carousel'`, the orchestrator emits a sentinel status (`deferred_to_phase_c`) with `post: null`, `carousel: null`, `validation: null` — the admin panel is expected to handle that case by parking the draft in a queue awaiting Phase C.
+Both text and carousel paths are production-ready post-C2. Carousel validation rules are extended in Phase C3 (`linkedin-validate` carousel branch). The `deferred_to_phase_c` status is retained as a generic escape hatch for any future format lacking a converter, not a carousel-specific path.
 
 ## Reference files
 
@@ -63,24 +63,26 @@ On success, carry `ConvertOutput` forward to Step 3.
 
 ### Step 2b — `format === 'carousel'`
 
-DO NOT invoke any carousel skill — it does not exist yet. Phase C2 lands `linkedin-carousel`.
+Invoke `linkedin-carousel` with `{ brief, blog }`. The sub-skill returns a `CarouselOutput` (7-10 slides with per-slide copy + 300-2500 char image_prompt, one cover, one CTA, ≥1 human_fingerprint, ≥1 direct_answer).
 
-Emit the orchestrator output with:
-- `status: 'deferred_to_phase_c'`
-- `format: 'carousel'`
-- `brief` populated (the B1 output is valuable even without downstream steps)
-- `post: null`, `carousel: null`, `validation: null`
-- `generated_at: <ISO-8601 timestamp>`
+Validate against `CarouselOutputSchema` (imported from `skills/linkedin-carousel/schema.ts`). On failure:
+- Set `status: 'failed'`, `error.step = 'carousel'`
+- Keep `brief` populated, set `post`/`carousel`/`validation` to `null`
+- Return immediately
 
-Skip Step 3 and Step 4 — return immediately. The admin panel is responsible for parking this draft and revisiting once Phase C ships.
+On success, carry `CarouselOutput` forward to Step 3.
 
 ## Step 3 — Invoke linkedin-validate
 
-Hand `{ format: 'text', post: convertOutput }` to `linkedin-validate`. The sub-skill returns a `Validation` (Depth Score 0-100, passed boolean, failures array, suggestions array).
+Hand the appropriate envelope to `linkedin-validate`:
+- Text path: `{ format: 'text', post: convertOutput }`
+- Carousel path: `{ format: 'carousel', post: carouselOutput }`
+
+The sub-skill returns a `Validation` (Depth Score 0-100, passed boolean, failures array, suggestions array).
 
 Validate against `ValidationSchema` (imported from `skills/linkedin-validate/schema.ts`). On failure:
 - Set `status: 'failed'`, `error.step = 'validate'`
-- Keep `brief` and `post` populated, set `validation` to `null`
+- Keep `brief` and (post OR carousel) populated, set `validation` to `null`
 - Return immediately
 
 On success, carry `Validation` forward to Step 4.
@@ -122,10 +124,10 @@ On schema violation at any step, emit `status: 'failed'` with a structured `erro
 Authoritative shape: `skills/linkedin-gen/schema.ts` → `OrchestratorOutputSchema`.
 
 Invariants:
-- `status='complete'` + `format='text'` ⇒ `post` and `validation` both non-null
-- `status='deferred_to_phase_c'` ⇒ `format='carousel'` AND `post=null`
+- `status='complete'` + `format='text'` ⇒ `post` + `validation` non-null AND `carousel=null`
+- `status='complete'` + `format='carousel'` ⇒ `carousel` + `validation` non-null AND `post=null`
+- `status='deferred_to_phase_c'` ⇒ `post`/`carousel`/`validation` all null (generic escape hatch)
 - `status='failed'` ⇒ `error` block present (step, message)
-- `carousel` is ALWAYS `null` in the B5 contract — Phase C2 replaces this slot with a real carousel schema
 
 The `superRefine` guards in `schema.ts` enforce every invariant. Output that violates them fails validation.
 
