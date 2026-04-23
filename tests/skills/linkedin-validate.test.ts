@@ -50,8 +50,8 @@ const ANTI_SLOP_PHRASES = [
 
 const ENGAGEMENT_BAIT_STRINGS = [
   'Comment YES',
-  'Type A',
-  'Type B',
+  'type a for',
+  'type a/b',
   'Drop a 🔥',
   'Smash that like button',
 ] as const;

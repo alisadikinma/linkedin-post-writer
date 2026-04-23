@@ -56,7 +56,7 @@ Start with `base = 100`. Apply each rule in order, accumulating deductions and b
 | 6 | `hashtag_count_out_of_range` | `3 <= hashtags.length <= 5` | **-5** per hashtag outside range (e.g. 6 tags → -5; 2 tags → -5; 10 tags → -25) | important |
 | 7 | `hashtag_format_invalid` | Every hashtag matches `/^#[A-Za-z0-9]+$/` | **-5** per non-compliant tag | minor |
 | 8 | `ai_slop_phrase` | `post_text` contains ANY of 7 banned phrases: "delve into", "unlock the power of", "in today's fast-paced digital landscape", "at the end of the day", "navigating the complexities of", "harness the power of", "seamlessly integrate" | **-20** per match, **HARD FAIL** | critical |
-| 9 | `engagement_bait` | `post_text` contains ANY of: "Comment YES", "Type A", "Type B", "Drop a 🔥", "Smash that like button" | **-20** per match, **HARD FAIL** | critical |
+| 9 | `engagement_bait` | `post_text` contains ANY of: "Comment YES", "type a for", "type a/b", "Drop a 🔥", "Smash that like button" (case-insensitive match) | **-20** per match, **HARD FAIL** | critical |
 | 10 | `link_comment_missing_url` | `link_comment` contains `https?://` (the whole point of the first comment is to carry the blog URL) | **-10** if absent | important |
 | 11 | `pull_quote_verbatim_bonus` | IF `brief.pull_quote` is provided as context AND appears verbatim in `post_text` | **+5** bonus | minor |
 
@@ -137,11 +137,11 @@ Banned AI-slop phrases (7):
 6. "harness the power of"
 7. "seamlessly integrate"
 
-Engagement-bait strings (5):
+Engagement-bait strings (5, lockstep with `../linkedin-convert/schema.ts` ENGAGEMENT_BAIT array):
 
 1. "Comment YES"
-2. "Type A"
-3. "Type B"
+2. "type a for"
+3. "type a/b"
 4. "Drop a 🔥"
 5. "Smash that like button"
 
