@@ -22,7 +22,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { z } from 'zod';
 
-const SkillFrontmatterSchema = z.object({
+export const SkillFrontmatterSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   model: z.enum(['sonnet', 'opus', 'haiku']),
@@ -42,7 +42,7 @@ export interface UploadSkillsOptions {
   dryRun: boolean;
 }
 
-function parseFrontmatter(source: string, path: string): SkillFrontmatter {
+export function parseFrontmatter(source: string, path: string): SkillFrontmatter {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match || match[1] === undefined) {
     throw new Error(`SKILL.md missing YAML frontmatter: ${path}`);
