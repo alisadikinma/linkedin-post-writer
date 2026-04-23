@@ -171,7 +171,12 @@ describe('linkedin-gen SKILL.md contract', () => {
 // ---------------------------------------------------------------------------
 
 describe('linkedin-gen schema.ts contract', () => {
-  // Minimal valid Brief / Convert / Validation fixtures for synthesis
+  // Synthetic shape-only Brief / Convert / Validation objects used to construct
+  // the many (good, bad) × (text, carousel, failed) × (null, non-null) permutations
+  // this suite needs. These are NOT the same as B1/B2/B3 golden fixtures — the
+  // cross-skill composition test below loads real B1+B2+B3 fixtures via
+  // loadJsonFixture. Keeping these inline avoids async overhead in pure
+  // Zod-contract assertions.
   const validBrief: Brief = {
     format: 'text',
     hook_id: 'specific_number',
@@ -355,6 +360,23 @@ describe('linkedin-gen schema.ts contract', () => {
     if (!result.success) {
       const msgs = result.error.issues.map((i) => i.message).join('|');
       expect(msgs).toMatch(/format=carousel|carousel/);
+    }
+  });
+
+  it('OrchestratorOutputSchema rejects status=complete + format=carousel (Phase C2 migration guard)', () => {
+    const bad = {
+      status: 'complete' as const,
+      format: 'carousel' as const,
+      brief: carouselBrief,
+      post: null,
+      carousel: null,
+      validation: null,
+    };
+    const result = OrchestratorOutputSchema.safeParse(bad);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const msgs = result.error.issues.map((i) => i.message).join('|');
+      expect(msgs).toMatch(/Phase C2|deferred_to_phase_c/);
     }
   });
 

@@ -152,6 +152,20 @@ export const OrchestratorOutputSchema = z
         path: ['error'],
       });
     }
+
+    // Invariant 4 — carousel cannot be `complete` until Phase C2 ships.
+    // Guards the unintended state { status: complete, format: carousel, post: null }
+    // which is syntactically valid but semantically impossible pre-C2 (no carousel
+    // converter exists yet). Phase C2 will relax this — the `carousel` slot
+    // becomes non-null and this invariant flips to require non-null carousel.
+    if (data.status === 'complete' && data.format === 'carousel') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'status=complete + format=carousel is not valid until Phase C2 ships the carousel skill; use status=deferred_to_phase_c instead',
+        path: ['status'],
+      });
+    }
   });
 
 export type OrchestratorOutput = z.infer<typeof OrchestratorOutputSchema>;
