@@ -1,0 +1,111 @@
+{
+  "status": "complete",
+  "format": "carousel",
+  "brief": {
+    "format": "carousel",
+    "hook_framework": "before_after",
+    "pillar": "ai_generalist",
+    "pull_quote": "Gemini 3.1 Pro scored 77.1% on ARC-AGI-2. GPT-5.2 sits at 52.9%. A 24-point gap is the largest ever recorded on this benchmark.",
+    "angle": "Not a chatbot upgrade — a category shift. Seven capabilities that separate tool-era from partner-era AI.",
+    "title_draft": "Gemini 3 broke its own benchmark by 24 points. Seven capabilities that explain why.",
+    "linkedin_conversion_confidence": 0.85
+  },
+  "post": null,
+  "carousel": {
+    "total_slides": 10,
+    "hook_framework": "before_after",
+    "structure": "build_in_public",
+    "slides": [
+      {
+        "slide_number": 1,
+        "layout_hint": "cover",
+        "is_cover": true,
+        "is_cta": false,
+        "copy": "Gemini 3 beat the ARC-AGI-2 benchmark by 24 points. The biggest jump ever recorded. Seven capabilities that prove it is a category shift, not a chatbot upgrade.",
+        "image_prompt": "Portrait 1080x1350 carousel cover slide. Scene: a vertical bar chart rendered as three stacked paper cutouts on a matte dark surface, the rightmost bar visibly taller than the others, a sharp beam of side light casting long geometric shadows, deliberate editorial composition. Render the exact copy 'Gemini 3 beat the ARC-AGI-2 benchmark by 24 points. The biggest jump ever recorded. Seven capabilities that prove it is a category shift, not a chatbot upgrade.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, deep muted palette with one warm accent, light film grain, subtle vignette. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 2,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Before Gemini 3: an AI that answered from a frozen snapshot of the web. After Gemini 3: a work partner that browses, sketches, transcribes, and decides — grounded in live search and multi-step tool use.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: a split composition — on the left side, a closed book on a dim shelf with dust motes in a single beam of low light; on the right side, an open laptop with multiple live browser tabs faintly glowing, a green plant breathing light beside it. Render the exact copy 'Before Gemini 3: an AI that answered from a frozen snapshot of the web. After Gemini 3: a work partner that browses, sketches, transcribes, and decides — grounded in live search and multi-step tool use.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, dual-tone palette, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 3,
+        "layout_hint": "human_fingerprint",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "I gave it a hand sketch of a dashboard on a napkin, scanned with a phone in bad light. Twenty seconds later I had a working React app. That was the moment the word assistant stopped fitting.",
+        "image_prompt": "Portrait 1080x1350 carousel human-fingerprint slide. Scene: an overhead photograph of a real paper napkin with a hand-drawn dashboard sketch in blue ballpoint ink, a phone laid diagonally capturing the sketch, a half-empty coffee glass to the side, soft morning window light from the upper left. Render the exact copy 'I gave it a hand sketch of a dashboard on a napkin, scanned with a phone in bad light. Twenty seconds later I had a working React app. That was the moment the word assistant stopped fitting.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic documentary lighting, authentic palette, light film grain, subtle vignette. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 4,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Capability 1 — PhD-level reasoning. 91.9% on GPQA Diamond (doctoral-level science). Gold-medal performance at the 2025 International Math, Physics, and Chemistry Olympiads. This is not pattern-matching.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: three gold medals arranged on a dark velvet tray, a single directional spotlight catching the edges, one medal slightly tilted upward, shallow depth of field, quiet editorial framing. Render the exact copy 'Capability 1 — PhD-level reasoning. 91.9% on GPQA Diamond (doctoral-level science). Gold-medal performance at the 2025 International Math, Physics, and Chemistry Olympiads. This is not pattern-matching.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, muted prestige palette with a warm gold accent, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 5,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Capability 2 — sketch to working app. Drop a hand-drawn UI on its lap and it returns a functional, styled, deployable React project. Designers and PMs stop waiting for a dev sprint to prove a concept.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: a paper-to-screen dissolve — the left half shows a pencil sketch of a mobile UI on textured paper, the right half fades into a clean rendered mockup of the same UI on a dark matte phone, bridged by a faint geometric light trail. Render the exact copy 'Capability 2 — sketch to working app. Drop a hand-drawn UI on its lap and it returns a functional, styled, deployable React project. Designers and PMs stop waiting for a dev sprint to prove a concept.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, dual-medium palette, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 6,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Capability 3 — autonomous browser agent. Runs multi-step automation tasks (scraping, form filling, research) without supervision. A 30-minute research job you used to queue for Monday now finishes during coffee.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: an abstract diagram of a single glowing thread weaving through five faint browser window silhouettes arranged vertically, soft blue-gray gradient background, a subtle clock pointing to a five-minute interval in the corner. Render the exact copy 'Capability 3 — autonomous browser agent. Runs multi-step automation tasks (scraping, form filling, research) without supervision. A 30-minute research job you used to queue for Monday now finishes during coffee.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, calm technical palette, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 7,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Capability 4 — multilingual meeting transcription. Records 3-hour meetings, identifies speakers, extracts decisions — 50% better structural accuracy than the previous generation. Note-takers just got free.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: an editorial flat-lay of a small audio recorder on a closed notebook, a paper cup of coffee gone cold, three colored pens arranged in parallel, a soft clock face visible in the upper corner of the frame, quiet afternoon light. Render the exact copy 'Capability 4 — multilingual meeting transcription. Records 3-hour meetings, identifies speakers, extracts decisions — 50% better structural accuracy than the previous generation. Note-takers just got free.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, muted office palette, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 8,
+        "layout_hint": "body",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Capability 5 — AIME 2025 math, 100% with code execution, 95% without. Capability 6 — real-time Google Search grounding. Capability 7 — Workspace integration across Docs, Sheets, Drive, and Deep Research.",
+        "image_prompt": "Portrait 1080x1350 carousel body slide. Scene: three minimalist paper icons arranged in a triangle on a matte light surface — a calculator sheet with a small checkmark, a compass with a pointing needle, a stacked set of folders tied with thin string, each icon lit from a slightly different angle. Render the exact copy 'Capability 5 — AIME 2025 math, 100% with code execution, 95% without. Capability 6 — real-time Google Search grounding. Capability 7 — Workspace integration across Docs, Sheets, Drive, and Deep Research.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, neutral palette, light film grain. No watermark, no extra labels."
+      },
+      {
+        "slide_number": 9,
+        "layout_hint": "direct_answer",
+        "is_cover": false,
+        "is_cta": false,
+        "copy": "Category shift in seven data points (30-second summary)",
+        "image_prompt": "Portrait 1080x1350 carousel direct-answer slide. Scene: seven small numbered cards arranged in a clean grid on a neutral matte background, each card casting a gentle directional shadow, a faint vertical axis line suggesting scale, deliberate editorial composition. Render the exact copy 'Category shift in seven data points (30-second summary)' as hero typography at the top of the safe band with a clean structured body beneath it, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, neutral palette, light film grain. No watermark, no extra labels.",
+        "direct_answer_block": "Gemini 3.1 Pro scored 77.1% on ARC-AGI-2, a 24-point lead over GPT-5.2 — the largest gap ever recorded on this benchmark. It delivers gold-medal Olympiad performance, turns hand sketches into working React apps in seconds, runs autonomous browser agents end-to-end, transcribes three-hour multilingual meetings with 50% better structural accuracy, and grounds answers in live Google Search instead of frozen training cutoffs. This is not a chatbot upgrade. It is the tool-to-partner line."
+      },
+      {
+        "slide_number": 10,
+        "layout_hint": "cta",
+        "is_cover": false,
+        "is_cta": true,
+        "copy": "Which capability made you say this changes my workflow tomorrow — the sketch-to-app, the browser agent, or the meeting transcriber? Tell me the one you are running this week. The blog breakdown lives in the first comment.",
+        "image_prompt": "Portrait 1080x1350 carousel CTA slide. Scene: a warm wooden desk with an open blank notebook, a pen resting beside it, a single cup of black coffee, late-afternoon light filtering through a side window, a thoughtful pause waiting for a reply. Render the exact copy 'Which capability made you say this changes my workflow tomorrow — the sketch-to-app, the browser agent, or the meeting transcriber? Tell me the one you are running this week. The blog breakdown lives in the first comment.' as hero typography, center-aligned inside the middle safe band (strictly NOT inside the top 150px dead zone reserved for the LinkedIn profile overlay, strictly NOT inside the bottom 200px dead zone reserved for swipe indicators), with 75px left and right margins, body text at 24pt minimum (~46-48px at this 1080x1350 resolution), high-contrast sans-serif typeface. Style: cinematic editorial lighting, warm inviting palette, light film grain, subtle vignette. No watermark, no extra labels."
+      }
+    ]
+  },
+  "validation": {
+    "depth_score": 100,
+    "passed": true,
+    "format": "carousel",
+    "failures": [],
+    "suggestions": [],
+    "computed_at": "2026-04-23T15:45:00Z"
+  },
+  "generated_at": "2026-04-23T15:45:00Z"
+}
