@@ -106,11 +106,25 @@ export const BriefSchema = z
         path: ['hook_id'],
       });
     }
+    if (data.format === 'text' && data.hook_framework !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'hook_framework must be absent for text format',
+        path: ['hook_framework'],
+      });
+    }
     if (data.format === 'carousel' && !data.hook_framework) {
       ctx.addIssue({
         code: 'custom',
         message: 'hook_framework required for carousel format',
         path: ['hook_framework'],
+      });
+    }
+    if (data.format === 'carousel' && data.hook_id !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'hook_id must be absent for carousel format',
+        path: ['hook_id'],
       });
     }
   });

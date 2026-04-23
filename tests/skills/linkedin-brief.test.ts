@@ -144,6 +144,26 @@ describe('linkedin-brief schema.ts contract', () => {
     }
   });
 
+  it('BriefSchema rejects text brief with orphan hook_framework field', () => {
+    const bad: Brief = { ...baseTextBrief, hook_framework: 'PAS' };
+    const result = BriefSchema.safeParse(bad);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message).join('|');
+      expect(messages).toMatch(/hook_framework must be absent for text format/);
+    }
+  });
+
+  it('BriefSchema rejects carousel brief with orphan hook_id field', () => {
+    const bad: Brief = { ...baseCarouselBrief, hook_id: 'contrarian' };
+    const result = BriefSchema.safeParse(bad);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message).join('|');
+      expect(messages).toMatch(/hook_id must be absent for carousel format/);
+    }
+  });
+
   it('BriefSchema rejects pull_quote shorter than 40 chars', () => {
     const bad: Brief = { ...baseTextBrief, pull_quote: 'too short' };
     const result = BriefSchema.safeParse(bad);
@@ -187,14 +207,15 @@ describe('linkedin-brief golden fixtures', () => {
       expect(brief).toBeDefined();
     });
 
-    it('expected output has format=text (framework → text rule)', async () => {
+    it('expected output has format=text with specific_number hook (framework → text rule)', async () => {
       const brief = await loadJsonFixture(
         'brief',
         'expected-framework.json',
         BriefSchema,
       );
       expect(brief.format).toBe('text');
-      expect(brief.hook_id).toBeDefined();
+      expect(brief.hook_id).toBe('specific_number');
+      expect(brief.hook_framework).toBeUndefined();
     });
   });
 
@@ -213,14 +234,15 @@ describe('linkedin-brief golden fixtures', () => {
       expect(brief).toBeDefined();
     });
 
-    it('expected output has format=carousel (listicle → carousel rule)', async () => {
+    it('expected output has format=carousel with AIDA framework (listicle → carousel rule)', async () => {
       const brief = await loadJsonFixture(
         'brief',
         'expected-listicle.json',
         BriefSchema,
       );
       expect(brief.format).toBe('carousel');
-      expect(brief.hook_framework).toBeDefined();
+      expect(brief.hook_framework).toBe('AIDA');
+      expect(brief.hook_id).toBeUndefined();
     });
   });
 
