@@ -264,7 +264,40 @@ NEVER include any `https://` or `http://` string in `image_prompt`. The blog lin
 
 The prompt should read like a cinematographer briefing a DOP, not like a bulleted spec sheet. 300-500 words of dense, readable prose per slide.
 
-## Step 5 — Assemble the output JSON
+## Step 5 — Author the LinkedIn post body (caption + hashtags + link_comment)
+
+The carousel ships with a native LinkedIn post body — the text the reader sees ABOVE the carousel before they swipe. This is separate from per-slide copy (which is rendered IN-IMAGE) and from the cover slide hook headline. The schema requires THREE additional top-level fields:
+
+### `caption` (800-1500 chars, target 1100-1300)
+
+The post body. Same character budget as a text-format post (matches RAG 05 sweet spot). Functions as a **swipe teaser** — hooks the reader, gives just enough context to want to swipe, mentions the topic-specific stake. Does NOT recap the slides verbatim — that kills swipe motivation. Structure:
+
+1. **Hook line (one sentence, 80-200 chars)** — the pattern interrupt that stops the scroll. Mirror the cover slide's hook framework (PAS / AIDA / before_after / loss_aversion / contrarian) but state it as prose, not a billboard headline.
+2. **Stakes paragraph (2-3 sentences, ~250-400 chars)** — why this matters right now. Concrete numbers, named entities, specific timeframes. Sets up the "swipe to see" promise.
+3. **Tease the framework (2-3 short sentences, ~200-300 chars)** — name what's in the carousel without spoiling it. "I broke this down into N signals across 9 slides" or "Here's what the $60B tells us, in 9 frames" — gives the reader a concrete reason to invest the swipe.
+4. **Call to swipe (one short sentence, 40-100 chars)** — explicit invitation. "Swipe →" or "Geser →" or "Tap untuk lihat semuanya" works. NOT engagement bait ("Comment YES if...").
+5. **Optional credibility note (one sentence, ~80-150 chars)** — first-person credibility marker. "Worked on this 6 years; never seen this dynamic" or "I've shipped 12 LLM features; here's what surprised me".
+
+### `hashtags` (3-5 array of strings, each `#Word` format)
+
+3-5 hashtags. Mix of broad (max 2) + niche (2-3) per RAG 05. LinkedIn's algorithm punishes hashtag stuffing — keep it conservative.
+
+- **Broad** (high traffic, generic): `#AI`, `#Tech`, `#Startup`, `#Leadership`, `#ProductManagement`
+- **Niche** (specific, lower volume but higher relevance): `#AnthropicAPI`, `#CursorIDE`, `#xAIGrok`, `#LLMOps`, `#DeveloperTools`
+
+Pick hashtags that match the topic — for "Cursor acquisition" carousel: `#AI`, `#Cursor`, `#Anthropic`, `#xAI`, `#StartupStrategy` is appropriate. Avoid `#FollowMe`, `#LinkedInGrowth`, `#Influencer` style spam tags.
+
+### `link_comment` (50-500 chars)
+
+The text of the FIRST COMMENT that gets posted automatically after the carousel goes live. **Must contain exactly one http(s) URL** — the blog URL — schema-enforced. Format:
+
+`[1-2 sentence bridge that ties the post body to the full article] [blog URL]`
+
+Example: "Detail teknis lengkap soal kenapa Cursor punya 18 bulan moat, plus breakdown apa yang bikin code editor jadi defensible AI app: https://alisadikinma.com/blog/musks-60-billion-cursor-acquisition"
+
+Why a separate comment instead of body link: LinkedIn applies a 60% reach penalty to posts with body links (RAG 06 §10 + CLAUDE.md §2026 LinkedIn Algorithm Mechanics). Putting the link in the first comment keeps the post body link-free → algorithm doesn't demote, then the comment surfaces the link to anyone interested.
+
+## Step 6 — Assemble the output JSON
 
 Emit a single JSON object matching `CarouselOutputSchema` (see `schema.ts`). Structural contract:
 
@@ -275,22 +308,25 @@ Emit a single JSON object matching `CarouselOutputSchema` (see `schema.ts`). Str
       "slide_number": 1,
       "layout_hint": "cover",
       "copy": "<5-12 word hook headline>",
-      "image_prompt": "<300-500 word cinematic brief with copy baked in>",
+      "image_prompt": "<300-2500 char cinematic brief with Ali in scene + bilingual headline + brand chrome>",
       "is_cover": true,
       "is_cta": false
     },
     { "slide_number": 2, "layout_hint": "body", "copy": "...", "image_prompt": "...", "is_cover": false, "is_cta": false },
-    { "slide_number": 4, "layout_hint": "human_fingerprint", "copy": "...", "image_prompt": "... use creator_brand_logo ...", "is_cover": false, "is_cta": false },
+    { "slide_number": 4, "layout_hint": "human_fingerprint", "copy": "...", "image_prompt": "... Ali in war-story scene ...", "is_cover": false, "is_cta": false },
     { "slide_number": 8, "layout_hint": "direct_answer", "copy": "...", "image_prompt": "...", "is_cover": false, "is_cta": false, "direct_answer_block": "<30-80 word AI-search-scrapable summary>" },
-    { "slide_number": 9, "layout_hint": "cta", "copy": "... Blog link in comments 👇", "image_prompt": "...", "is_cover": false, "is_cta": true }
+    { "slide_number": 9, "layout_hint": "cta", "copy": "... Blog link in comments 👇", "image_prompt": "... Ali in nyentrik CTA scene ...", "is_cover": false, "is_cta": true }
   ],
   "total_slides": 9,
   "hook_framework": "AIDA",
-  "structure": "build_in_public"
+  "structure": "build_in_public",
+  "caption": "<800-1500 char LinkedIn post body — swipe teaser, NOT a slide recap>",
+  "hashtags": ["#AI", "#Cursor", "#Anthropic", "#xAI", "#StartupStrategy"],
+  "link_comment": "<50-500 chars — 1-2 sentence bridge + blog URL>"
 }
 ```
 
-The schema's 12 `superRefine` invariants catch everything: exactly-one-cover, exactly-one-CTA, cover is slide 1, CTA is last, total_slides matches slides.length, at least one human_fingerprint, at least one direct_answer, gapless slide_number sequence, no banned phrases, no engagement bait, no http(s) URLs in slide text. If any invariant trips, re-author the offending slide — do NOT patch metadata to lie about the content.
+The schema's 16 `superRefine` invariants catch everything: exactly-one-cover, exactly-one-CTA, cover is slide 1, CTA is last, total_slides matches slides.length, at least one human_fingerprint, at least one direct_answer, gapless slide_number sequence, no banned phrases (in slides + caption + link_comment), no engagement bait, no http(s) URLs in slide text or caption, exactly one http(s) URL in link_comment. If any invariant trips, re-author the offending slide — do NOT patch metadata to lie about the content.
 
 ## Anti-slop guards
 

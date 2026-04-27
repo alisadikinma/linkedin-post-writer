@@ -197,6 +197,22 @@ export const CarouselOutputSchema = z
     // listicle-dense, etc.) bump this to a wider union — schema test pins the
     // literal today so nobody silently ships a second template.
     structure: z.literal('build_in_public'),
+    // The native LinkedIn POST BODY that accompanies the carousel upload
+    // (separate from per-slide copy). 1100-1300 chars sweet spot per RAG 05
+    // — same as text-format posts. Functions as a swipe teaser: hooks the
+    // reader, gives just enough context to want to swipe, mentions the
+    // topic-specific stake. Does NOT recap the slides verbatim — that
+    // kills swipe motivation. Hashtags are a separate field (below).
+    caption: z.string().min(800).max(1500),
+    // 3-5 hashtags (lowercase or mixedCase, with leading #). Mix of broad
+    // (max 2) + niche (2-3) per RAG 05. Keep on the conservative side —
+    // LinkedIn's algorithm punishes hashtag stuffing.
+    hashtags: z.array(z.string().regex(/^#[A-Za-z0-9_]+$/)).min(3).max(5),
+    // The link comment text — first comment posted automatically after the
+    // carousel goes live. 1-3 sentences + the blog URL. The blog URL goes
+    // ONLY in this comment, never in the post body or any slide (link-in-
+    // comment discipline avoids the 60% body-link reach penalty).
+    link_comment: z.string().min(50).max(500),
   })
   .superRefine((data, ctx) => {
     // Invariant 1: exactly one cover slide
@@ -326,6 +342,65 @@ export const CarouselOutputSchema = z
           path: ['slides', slide.slide_number - 1, 'copy'],
         });
       }
+    }
+
+    // Invariant 13: caption + link_comment anti-slop scan (same blacklist
+    // as slide copy, applied to the post body too)
+    const captionHaystack = data.caption.toLowerCase();
+    const linkCommentHaystack = data.link_comment.toLowerCase();
+    for (const phrase of BANNED_PHRASES) {
+      if (captionHaystack.includes(phrase.toLowerCase())) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `caption contains banned phrase: "${phrase}"`,
+          path: ['caption'],
+        });
+      }
+      if (linkCommentHaystack.includes(phrase.toLowerCase())) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `link_comment contains banned phrase: "${phrase}"`,
+          path: ['link_comment'],
+        });
+      }
+    }
+
+    // Invariant 14: caption no engagement bait
+    for (const bait of ENGAGEMENT_BAIT) {
+      if (captionHaystack.includes(bait)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `caption contains engagement bait: "${bait}"`,
+          path: ['caption'],
+        });
+      }
+    }
+
+    // Invariant 15: caption no http(s) URLs (link-in-comment discipline)
+    if (/https?:\/\//i.test(data.caption)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'caption contains http(s) URL — links live in link_comment, not caption body',
+        path: ['caption'],
+      });
+    }
+
+    // Invariant 16: link_comment MUST contain exactly one http(s) URL
+    // (the blog URL). Strict positive check — opposite of caption's
+    // negative check, because the link_comment IS where links belong.
+    const linkUrls = data.link_comment.match(/https?:\/\/[^\s)]+/gi) || [];
+    if (linkUrls.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'link_comment must contain exactly one http(s) blog URL',
+        path: ['link_comment'],
+      });
+    } else if (linkUrls.length > 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `link_comment must contain exactly one URL, got ${linkUrls.length}`,
+        path: ['link_comment'],
+      });
     }
   });
 
