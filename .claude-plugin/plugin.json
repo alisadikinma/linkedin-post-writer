@@ -1,7 +1,7 @@
 {
   "name": "linkedin-post-writer",
-  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 5 skills + 1 agent: brief router, text post writer, carousel composer with per-slide image prompts, Depth Score validator (>=80 gate), and end-to-end orchestrator. 12 text hook formulas, 5 cover hook frameworks, 20-rule anti-slop rubric. Pure content generation — emits draft JSON for an admin panel to consume. Built on 127-source RAG research.",
-  "version": "0.3.0",
+  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 5 skills + 1 agent: brief router, text post writer, carousel composer with per-slide image prompts, Depth Score validator (>=80 gate), and end-to-end orchestrator. 12 text hook formulas, 5 cover hook frameworks, 20-rule anti-slop rubric. v0.4.0 adds Carousel Image Standards: bilingual headline (Indonesian + English subtitle), brand chrome (page number, logo, watermark, SWIPE GESER), visual hook for cover, WOW 8-element gate, mobile dead zones — slide PNGs are now production-ready for Nano Banana Pro rendering. Pure content generation — emits draft JSON for an admin panel to consume. Built on 127-source RAG research.",
+  "version": "0.4.0",
   "author": {
     "name": "Ali Sadikin",
     "url": "https://github.com/alisadikinma"
