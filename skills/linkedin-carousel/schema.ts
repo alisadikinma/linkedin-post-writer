@@ -54,18 +54,45 @@ export const SlideLayoutHintSchema = z.enum([
 export type SlideLayoutHint = z.infer<typeof SlideLayoutHintSchema>;
 
 /**
+ * Per-layout-hint character ranges for slide copy. Used by the v0.4.6+
+ * superRefine invariants to enforce slot-appropriate lengths.
+ *
+ * Why per-layout: a cover slide is a 5-12 word billboard headline (40-180
+ * chars); a body slide is a fuller proof statement (80-260 chars); a
+ * human_fingerprint slide telling a war story needs more room (120-320
+ * chars). A single uniform range (the v0.4.5 "10-420" cap) lets the cover
+ * copy bloat to 30+ words and overflow the bilingual headline safe band.
+ *
+ * The same range applies to BOTH copy_en and copy_id — Indonesian
+ * translations may run slightly longer/shorter but the slot expectation
+ * is the same.
+ */
+const COPY_LENGTH_BY_LAYOUT: Record<SlideLayoutHint, { min: number; max: number }> = {
+  cover: { min: 40, max: 180 },              // 5-12 word billboard headline
+  body: { min: 80, max: 260 },               // proof / listicle item
+  human_fingerprint: { min: 120, max: 320 }, // war story prose
+  direct_answer: { min: 60, max: 240 },      // short lead-in (real substance is in direct_answer_block)
+  cta: { min: 100, max: 320 },               // comment-prompting question + reminder
+};
+
+/**
  * A single carousel slide. Fields:
  *   - slide_number: 1-indexed position (1..total_slides)
  *   - layout_hint: template selector for backend compositor
- *   - copy: the human-readable slide text. Rendered AS PART of the generated
- *          image per Addendum 2 D9 (text baked in AI prompt), so length is
- *          constrained by what fits on a 1080x1350 canvas at 24pt+ body type
- *          with 75px margins and dead zones (top 150px + bottom 200px).
- *          Range: 10-420 chars (5-12 word cover headline through ~50-word
- *          body copy). Longer copy overflows the safe band.
+ *   - copy_id: Indonesian-language version of the slide text. Rendered AS
+ *          THE MAIN HEADLINE (white #FFFFFF, ALL CAPS, large extra-bold
+ *          condensed sans-serif) inside the generated image per SKILL §4.2
+ *          bilingual headline contract. Length range varies by layout_hint
+ *          (cover 40-180, body 80-260, etc.) — see COPY_LENGTH_BY_LAYOUT.
+ *   - copy_en: English-language CANONICAL version. Rendered AS THE SUBTITLE
+ *          (golden #F5A623, ~70-80% of headline size) directly below the
+ *          Indonesian main headline. ALSO used for downstream Depth Score
+ *          scoring and banned-phrase scanning — schema invariants apply
+ *          here, not to copy_id.
  *   - image_prompt: 300-2500 char cinematic brief for GeminiGen/NB2. Must
- *          include the slide copy verbatim in quotes so the image generator
- *          renders it as typography in-frame (D9 "text baked" rule).
+ *          include BOTH copy_id (as headline) and copy_en (as subtitle)
+ *          verbatim in quoted strings so the image generator renders both
+ *          as in-frame typography per D9 "text baked" rule.
  *   - image_url: filled by backend AFTER GeminiGen render. Absent in this
  *          skill's output; present only on downstream payloads.
  *   - is_cover / is_cta: derived boolean flags; superRefine guards they match
@@ -73,12 +100,15 @@ export type SlideLayoutHint = z.infer<typeof SlideLayoutHintSchema>;
  *   - direct_answer_block: 150-600 chars (~30-80 words). Present ONLY on the
  *          one slide with layout_hint='direct_answer'. Self-contained summary
  *          optimized for AI search scrapers (Perplexity, ChatGPT search).
+ *          Use English here; Indonesian readers typically don't query AI
+ *          search engines for Indonesian-language answers at scale yet.
  */
 export const CarouselSlideSchema = z
   .object({
     slide_number: z.number().int().min(1).max(10),
     layout_hint: SlideLayoutHintSchema,
-    copy: z.string().min(10).max(420),
+    copy_id: z.string().min(10).max(420),
+    copy_en: z.string().min(10).max(420),
     image_prompt: z.string().min(300).max(2500),
     image_url: z.string().url().optional(),
     is_cover: z.boolean(),
@@ -115,6 +145,28 @@ export const CarouselSlideSchema = z
           'direct_answer_block must be absent unless layout_hint=direct_answer',
         path: ['direct_answer_block'],
       });
+    }
+
+    // Per-layout copy length invariants — applied to BOTH copy_en and copy_id.
+    // The cover slide bloat we kept seeing (production draft #26 cover at
+    // 210+ chars / 30 words instead of the spec'd 5-12 words) was caused by
+    // the previous uniform "min(10), max(420)" range — too permissive.
+    const range = COPY_LENGTH_BY_LAYOUT[slide.layout_hint];
+    if (range) {
+      if (slide.copy_en.length < range.min || slide.copy_en.length > range.max) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `copy_en length ${slide.copy_en.length} out of range ${range.min}-${range.max} for layout_hint=${slide.layout_hint}`,
+          path: ['copy_en'],
+        });
+      }
+      if (slide.copy_id.length < range.min || slide.copy_id.length > range.max) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `copy_id length ${slide.copy_id.length} out of range ${range.min}-${range.max} for layout_hint=${slide.layout_hint}`,
+          path: ['copy_id'],
+        });
+      }
     }
   });
 
@@ -303,15 +355,17 @@ export const CarouselOutputSchema = z
       }
     }
 
-    // Invariant 9: anti-slop phrase scan across every slide's copy + direct_answer_block
+    // Invariant 9: anti-slop phrase scan across every slide's copy_en/copy_id + direct_answer_block.
+    // Both languages scanned because banned phrases like "delve into" sometimes leak via
+    // direct translation ("menyelami") — Sonnet can sneak slop in on either side.
     for (const slide of data.slides) {
-      const haystack = `${slide.copy} ${slide.direct_answer_block ?? ''}`.toLowerCase();
+      const haystack = `${slide.copy_en} ${slide.copy_id} ${slide.direct_answer_block ?? ''}`.toLowerCase();
       for (const phrase of BANNED_PHRASES) {
         if (haystack.includes(phrase.toLowerCase())) {
           ctx.addIssue({
             code: 'custom',
             message: `slide ${slide.slide_number} contains banned phrase: "${phrase}"`,
-            path: ['slides', slide.slide_number - 1, 'copy'],
+            path: ['slides', slide.slide_number - 1, 'copy_en'],
           });
         }
       }
@@ -319,13 +373,13 @@ export const CarouselOutputSchema = z
 
     // Invariant 10: engagement-bait scan (lockstep with convert + validate)
     for (const slide of data.slides) {
-      const haystack = `${slide.copy} ${slide.direct_answer_block ?? ''}`.toLowerCase();
+      const haystack = `${slide.copy_en} ${slide.copy_id} ${slide.direct_answer_block ?? ''}`.toLowerCase();
       for (const bait of ENGAGEMENT_BAIT) {
         if (haystack.includes(bait)) {
           ctx.addIssue({
             code: 'custom',
             message: `slide ${slide.slide_number} contains engagement bait: "${bait}"`,
-            path: ['slides', slide.slide_number - 1, 'copy'],
+            path: ['slides', slide.slide_number - 1, 'copy_en'],
           });
         }
       }
@@ -334,12 +388,12 @@ export const CarouselOutputSchema = z
     // Invariant 12 (11 is LLM-enforced): no http(s) URLs in slide text
     // (link-in-comment discipline — links live only in the post's first comment)
     for (const slide of data.slides) {
-      const haystack = `${slide.copy} ${slide.direct_answer_block ?? ''}`;
+      const haystack = `${slide.copy_en} ${slide.copy_id} ${slide.direct_answer_block ?? ''}`;
       if (/https?:\/\//i.test(haystack)) {
         ctx.addIssue({
           code: 'custom',
           message: `slide ${slide.slide_number} contains http(s) URL — links go in first comment, not slide copy`,
-          path: ['slides', slide.slide_number - 1, 'copy'],
+          path: ['slides', slide.slide_number - 1, 'copy_en'],
         });
       }
     }

@@ -72,16 +72,18 @@ Every carousel follows the same narrative spine — **HOOK → FORESHADOW → BO
 
 ### Slide-position mapping (9-slide default; adjust counts for 7 or 10 total)
 
-| Slide | Act | layout_hint | Purpose | Copy length |
+Each row's `Length (per language)` applies to BOTH `copy_id` and `copy_en` — same range, schema-enforced via per-layout invariants in `superRefine`.
+
+| Slide | Act | layout_hint | Purpose | Length (per language) |
 |---|---|---|---|---|
-| 1 | **HOOK** | `cover` (is_cover=true) | Hook per `brief.hook_framework`. 5-12 word headline that promises a specific payoff, resolved only on the PEAK slide. | 40-180 chars |
+| 1 | **HOOK** | `cover` (is_cover=true) | Hook per `brief.hook_framework`. 5-12 word headline that promises a specific payoff, resolved only on the PEAK slide. | **40-180 chars** |
 | 2 | **FORESHADOW** | `body` | Set the stakes + tease the framework. Why this matters NOW. End on tension that demands the next swipe. | 80-260 chars |
 | 3 | BODY | `body` | First proof / first listicle item / first signal. | 80-260 chars |
 | 4 | BODY | `human_fingerprint` | Ali's war story / proprietary metric / hard-won failure. Authentic first-person voice. The credibility anchor before more proof. | 120-320 chars |
 | 5 | BODY | `body` | Continue proof / listicle items 2-3. | 80-260 chars |
 | 6 | BODY | `body` | Continue proof / listicle items 4-5. | 80-260 chars |
 | 7 | BODY | `body` | Final proof / listicle items 6-7. | 80-260 chars |
-| 8 | **PEAK** | `direct_answer` | Climactic insight — the payoff the HOOK promised. Short lead-in copy (~150-400 chars, schema bound 10-420). The real substance lives in `direct_answer_block`: **30-80 words / 150-600 chars** — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. | 10-420 chars copy + 150-600 chars direct_answer_block |
+| 8 | **PEAK** | `direct_answer` | Climactic insight — the payoff the HOOK promised. Short lead-in copy. The real substance lives in `direct_answer_block`: **30-80 words / 150-600 chars** — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. English only — Indonesian readers don't query AI search engines for Indonesian-language answers at scale yet. | 60-240 chars copy + 150-600 chars direct_answer_block |
 | 9 | **CTA** | `cta` (is_cta=true) | 5+ word comment-prompting question + "Blog link in comments 👇" reminder. Question targets the 15× Comment Quality weight in the Depth Score formula. | 100-320 chars |
 
 For 7-slide listicles: HOOK (1) → FORESHADOW (2) → BODY (3-5, includes human_fingerprint) → PEAK (6) → CTA (7).
@@ -105,7 +107,7 @@ Hard structural invariants (schema-enforced):
 
 ## Step 4 — Build the `image_prompt` for each slide (CRITICAL — text-baked-in)
 
-Each `image_prompt` is **300-2500 characters** (schema-enforced; target ~1500-2200 chars of cinematic prose for production-quality renders), written to instruct GeminiGen / Nano Banana Pro to render the slide's `copy` AS IN-FRAME TYPOGRAPHY plus full brand chrome — not as an overlay applied afterward. A single image generation call produces the final slide PNG.
+Each `image_prompt` is **300-2500 characters** (schema-enforced; target ~1500-2200 chars of cinematic prose for production-quality renders), written to instruct GeminiGen / Nano Banana Pro to render BOTH the slide's `copy_id` (Indonesian, main headline) and `copy_en` (English, subtitle) AS IN-FRAME TYPOGRAPHY plus full brand chrome — not as an overlay applied afterward. A single image generation call produces the final slide PNG.
 
 **The full image standards spec lives in `refs-linkedin-carousel.md` §07 (Carousel Image Standards) — it is already in your system prompt. This section is a quick checklist.** When in doubt, follow §07 §1-§14 as the law.
 
@@ -119,15 +121,32 @@ These elements are NON-NEGOTIABLE on every slide. Express them in the text-overl
 - **SWIPE indicator** — the literal text `"SWIPE (GESER) >"` in small white, positioned directly beneath the headline text with minimal gap. **Omit this on the CTA slide only.**
 - **CTA social block (last slide ONLY)** — replaces the SWIPE indicator. Render: `"Three small social media icons (Instagram logo, TikTok logo, LinkedIn logo) in a single horizontal row with '@alisadikinma' in white text beside the icons row. Below the icons row, 'https://alisadikinma.com' in white text at slightly smaller size."`
 
-### 4.2 Bilingual headline contract (every slide that has headline copy)
+### 4.2 Bilingual headline contract (every slide — TWO required fields, schema-enforced)
 
-The slide's `copy` field is rendered in TWO LANGUAGES inside the image:
+Every slide carries TWO copy fields, both REQUIRED by the schema. Each plays a specific rendering role inside the generated image:
 
-- **Main headline (Bahasa Indonesia)** — translate the slide `copy` to Indonesian. White `#FFFFFF`, ALL CAPS, extra-bold condensed sans-serif (Oswald Black / Bebas Neue Bold / Impact family), the largest possible font size that fills the width.
-- **Accent keywords (2-4 within main headline)** — pick 2-4 emotionally impactful keywords inside the headline and render them in golden `#F5A623`. Same massive size and weight. NEVER highlight just one keyword.
-- **Subtitle (English)** — the original/equivalent English version, golden `#F5A623` (NEVER white — must create visual hierarchy), 70-80% size of main headline, positioned directly below.
+- **`copy_id`** (Indonesian) → rendered AS THE MAIN HEADLINE inside the image. White `#FFFFFF`, ALL CAPS, extra-bold condensed sans-serif (Oswald Black / Bebas Neue Bold / Impact family), the largest possible font size that fills the width.
+- **`copy_en`** (English) → rendered AS THE SUBTITLE directly below the Indonesian headline. Golden `#F5A623` (NEVER white — must create visual hierarchy), 70-80% size of main headline.
 
-The `copy` field on the slide JSON should hold the **English** version as the canonical copy (for downstream Depth Score / banned-phrase scanning). The `image_prompt` body must spell out the **Indonesian translation** to bake in as the main headline plus the English subtitle.
+Plus this third element baked into the main headline:
+
+- **Accent keywords (2-4 within `copy_id` rendering)** — pick 2-4 emotionally impactful keywords inside the Indonesian headline and render them in golden `#F5A623`. Same massive size and weight. NEVER highlight just one keyword. The `image_prompt` body specifies which words to accent.
+
+**Per-layout length limits (schema-enforced — applies to BOTH `copy_id` and `copy_en`):**
+
+| Layout | Min | Max | Word count target |
+|---|---|---|---|
+| `cover` | 40 chars | 180 chars | **5-12 word billboard headline** |
+| `body` | 80 chars | 260 chars | proof / listicle item |
+| `human_fingerprint` | 120 chars | 320 chars | first-person war story |
+| `direct_answer` | 60 chars | 240 chars | short lead-in (real substance lives in `direct_answer_block`) |
+| `cta` | 100 chars | 320 chars | comment-prompting question + reminder |
+
+**Why per-layout (the v0.4.5 cover-bloat regression):** the prior schema used a uniform `min(10), max(420)` range. Production draft #26 cover ended up at 210+ chars / 30 words / 3 sentences instead of the spec'd 5-12 words — the bilingual headline overflow ate the visual hook. v0.4.6 hard-fails any cover above 180 chars at schema validation time.
+
+**`copy_en` is the canonical copy for downstream:** Depth Score scoring, banned-phrase scanning, engagement-bait scanning, link-in-comment URL enforcement all run against `copy_en` (and the matching `copy_id`, since slop sometimes leaks via direct translation — "menyelami" for "delve into").
+
+The `image_prompt` body MUST quote BOTH `copy_id` and `copy_en` verbatim so the image generator renders both as in-frame typography.
 
 Both lines positioned starting from the **vertical center of the image extending downward, NOT crammed at the very bottom**. The text-overlay paragraph MUST include all three of these literal phrases:
 
@@ -351,15 +370,16 @@ Emit a single JSON object matching `CarouselOutputSchema` (see `schema.ts`). Str
     {
       "slide_number": 1,
       "layout_hint": "cover",
-      "copy": "<5-12 word hook headline>",
-      "image_prompt": "<300-2500 char cinematic brief with Ali in scene + bilingual headline + brand chrome>",
+      "copy_id": "<Indonesian 5-12 word billboard headline, ALL-CAPS feel — 40-180 chars>",
+      "copy_en": "<English 5-12 word equivalent — 40-180 chars>",
+      "image_prompt": "<300-2500 char cinematic brief with Ali in scene + BOTH copy_id and copy_en quoted verbatim for in-image typography + brand chrome>",
       "is_cover": true,
       "is_cta": false
     },
-    { "slide_number": 2, "layout_hint": "body", "copy": "...", "image_prompt": "...", "is_cover": false, "is_cta": false },
-    { "slide_number": 4, "layout_hint": "human_fingerprint", "copy": "...", "image_prompt": "... Ali in war-story scene ...", "is_cover": false, "is_cta": false },
-    { "slide_number": 8, "layout_hint": "direct_answer", "copy": "...", "image_prompt": "...", "is_cover": false, "is_cta": false, "direct_answer_block": "<30-80 word AI-search-scrapable summary>" },
-    { "slide_number": 9, "layout_hint": "cta", "copy": "... Blog link in comments 👇", "image_prompt": "... Ali in nyentrik CTA scene ...", "is_cover": false, "is_cta": true }
+    { "slide_number": 2, "layout_hint": "body", "copy_id": "<ID, 80-260>", "copy_en": "<EN, 80-260>", "image_prompt": "...", "is_cover": false, "is_cta": false },
+    { "slide_number": 4, "layout_hint": "human_fingerprint", "copy_id": "<ID war story, 120-320>", "copy_en": "<EN war story, 120-320>", "image_prompt": "... Ali in war-story scene ...", "is_cover": false, "is_cta": false },
+    { "slide_number": 8, "layout_hint": "direct_answer", "copy_id": "<ID lead-in, 60-240>", "copy_en": "<EN lead-in, 60-240>", "image_prompt": "...", "is_cover": false, "is_cta": false, "direct_answer_block": "<30-80 word AI-search-scrapable summary, English only>" },
+    { "slide_number": 9, "layout_hint": "cta", "copy_id": "<ID question + 'Blog link di kolom komentar 👇', 100-320>", "copy_en": "<EN question + 'Blog link in comments 👇', 100-320>", "image_prompt": "... Ali in nyentrik CTA scene ...", "is_cover": false, "is_cta": true }
   ],
   "total_slides": 9,
   "hook_framework": "AIDA",
@@ -370,11 +390,11 @@ Emit a single JSON object matching `CarouselOutputSchema` (see `schema.ts`). Str
 }
 ```
 
-The schema's 16 `superRefine` invariants catch everything: exactly-one-cover, exactly-one-CTA, cover is slide 1, CTA is last, total_slides matches slides.length, at least one human_fingerprint, at least one direct_answer, gapless slide_number sequence, no banned phrases (in slides + caption + link_comment), no engagement bait, no http(s) URLs in slide text or caption, exactly one http(s) URL in link_comment. If any invariant trips, re-author the offending slide — do NOT patch metadata to lie about the content.
+The schema's `superRefine` invariants catch everything: exactly-one-cover, exactly-one-CTA, cover is slide 1, CTA is last, total_slides matches slides.length, at least one human_fingerprint, at least one direct_answer, gapless slide_number sequence, **per-layout copy length applied to BOTH copy_id and copy_en** (cover 40-180, body 80-260, human_fingerprint 120-320, direct_answer 60-240, cta 100-320), no banned phrases (in slides + caption + link_comment), no engagement bait, no http(s) URLs in slide text or caption, exactly one http(s) URL in link_comment. If any invariant trips, re-author the offending slide — do NOT patch metadata to lie about the content.
 
 ## Anti-slop guards
 
-Neither `copy` nor `direct_answer_block` on any slide may contain any of these phrases (case-insensitive; schema hard-fails):
+Neither `copy_id` nor `copy_en` nor `direct_answer_block` on any slide may contain any of these phrases (case-insensitive; schema hard-fails). Indonesian translations of these phrases are also flagged — Sonnet sometimes sneaks slop in via direct translation ("delve into" → "menyelami"):
 
 - "delve into"
 - "unlock the power of"
@@ -384,7 +404,7 @@ Neither `copy` nor `direct_answer_block` on any slide may contain any of these p
 - "harness the power of"
 - "seamlessly integrate"
 
-Neither `copy` nor `direct_answer_block` may contain any engagement bait CTA:
+Neither `copy_id` nor `copy_en` nor `direct_answer_block` may contain any engagement bait CTA:
 
 - "Comment YES"
 - "Type A for" / "Type A/B"
