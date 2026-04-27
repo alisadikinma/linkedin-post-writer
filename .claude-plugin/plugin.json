@@ -1,7 +1,7 @@
 {
   "name": "linkedin-post-writer",
-  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 5 skills + 1 agent: brief router, text post writer, carousel composer with per-slide image prompts, Depth Score validator (>=80 gate), and end-to-end orchestrator. 12 text hook formulas, 5 cover hook frameworks, 20-rule anti-slop rubric. v0.4.1 strengthens Carousel Image Standards: explicit creator-face mandate in prompt body (face_refs alone is insufficient), expression library mapped to hook frameworks, 16 visual action types for absurdist hooks, visual-to-text ratio rule (70-80% visual / 30-40% text), CTA visual types (polarize/question/identity/reward), prompt-leak prevention (no font names, point sizes, or lens specs as text fragments — verified failure mode). Pure content generation — emits draft JSON for an admin panel to consume. Built on 127-source RAG research.",
-  "version": "0.4.1",
+  "description": "Convert blog posts to native LinkedIn posts (text + 7-10 slide carousel), 2026 algorithm-optimized. 5 skills + 1 agent: brief router, text post writer, carousel composer with per-slide image prompts, Depth Score validator (>=80 gate), and end-to-end orchestrator. 12 text hook formulas, 5 cover hook frameworks, 20-rule anti-slop rubric. v0.4.2 fixes carousel canvas spec to 1:1 (1080×1080) — Imagen / Nano Banana Pro silently rejects non-standard ratios like 4:5 and falls back to 16:9 default. Mobile dead zones updated for square canvas (top 100px / bottom 140px / 60px sides). Visual-hook + creator-face + bilingual + brand-chrome standards from v0.4.1 retained. Pure content generation — emits draft JSON for an admin panel to consume. Built on 127-source RAG research.",
+  "version": "0.4.2",
   "author": {
     "name": "Ali Sadikin",
     "url": "https://github.com/alisadikinma"

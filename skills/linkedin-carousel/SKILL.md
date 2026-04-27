@@ -210,15 +210,17 @@ Pull 1-2 specifics per prompt from these categories to prevent the "AI-perfect g
 
 ### 4.7 Mobile dead zones + technical specs
 
-- **Top 150px**: empty negative space — LinkedIn profile overlay sits here
-- **Bottom 200px**: empty except for the page-indicator band and (non-CTA) SWIPE indicator
-- **Left/right 75px**: breathing margins — no headline glyphs cross these
+The canvas is **1:1 square (1080×1080)** — Imagen / Nano Banana Pro silently rejects non-standard aspect ratios. Verified production failure: requesting `4:5` falls back to `16:9` default. Use 1:1 only.
 
-Phrase to the model: `"leave the top 150px empty with textured background only — no text, no figures, no logos. Leave the bottom 200px similarly empty except for the centered page indicator and SWIPE (GESER) > indicator."`
+- **Top 100px**: empty negative space — LinkedIn profile overlay sits here
+- **Bottom 140px**: text-overlay band (headline, subtitle, SWIPE / social block) with smooth dark gradient blending up into the visual content
+- **Left/right 60px**: breathing margins — no headline glyphs cross these
+
+Phrase to the model: `"leave the top 100 pixels empty with textured background only — no text, no figures, no logos. The bottom 140 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 60 pixels on left and right."`
 
 Fixed technical specs (mention in paragraph 5 of every prompt):
 
-- Aspect ratio: 1080×1350 portrait (4:5)
+- Aspect ratio: 1080×1080 square (1:1) — IMPORTANT: this is fixed, do not request other ratios
 - Default film stock: Kodak Portra 400
 - Color temperature: 3200-3500K (warm)
 - Color grade: warm golden amber
@@ -250,11 +252,11 @@ What MAY appear in ALL CAPS or as literal quoted strings: the actual in-image te
 
 Each `image_prompt` MUST use paragraph breaks separating these sections — single-block monolith prompts get rejected:
 
-1. **Subject + expression + wardrobe + action**
+1. **Subject + expression + wardrobe + action** (Ali by name in cover / human-fingerprint / cta)
 2. **Scene + environment + spatial layers** (foreground / middle / background)
-3. **Lens + lighting + film stock + atmosphere + texture** (cinematographer's spec sheet)
+3. **Lens + lighting + film stock + atmosphere + texture** (cinematographer's spec sheet — described as visual properties, NEVER as literal font names or lens specs per §4.8)
 4. **Text overlay block** — main headline (Indonesian, white) + accent keywords (golden) + subtitle (English, golden) + brand icon center thirty percent + @alisadikinma watermark center thirty percent + SWIPE (GESER) > below headline + page number top-left
-5. **Aspect ratio + constraints** — 1080×1350 portrait canvas, mobile dead zones, in-image text rendering, no URLs
+5. **Aspect ratio + constraints** — 1080×1080 square canvas, mobile dead zones (top 100px / bottom 140px / 60px side margins), in-image text rendering, no URLs in slide
 
 ### 4.10 Zero URLs in slide images
 
