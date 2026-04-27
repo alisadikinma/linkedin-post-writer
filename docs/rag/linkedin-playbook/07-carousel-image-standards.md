@@ -3,7 +3,7 @@
 > **Source of truth** for the image_prompt body that every `linkedin-carousel`
 > slide must produce. Mirrors `D:\Projects\claude-plugin\ai-image-carousel-prompt-gen`
 > standards (global-config.md + creator-bible.md + prompt-formulas.md), trimmed
-> to LinkedIn-only spec (1:1 square — Imagen-native ratio; 4:5 silently falls back to 16:9 default).
+> to LinkedIn-only spec (3:4 portrait — Imagen-native ratio chosen for cross-platform reuse on IG + LinkedIn + TikTok; 4:5 silently falls back to 16:9 default in GeminiGen).
 >
 > Companion to `06-carousel-design.md` (which covers slide COPY discipline). This
 > file covers the IMAGE PROMPT discipline — the cinematic brief sent to GeminiGen
@@ -37,7 +37,7 @@ and logos as part of the image itself.
 
 - Position: top-left corner, ~60px from edges
 - Format: `"{N}/{total}"` — e.g., `"1/9"`, `"5/9"`
-- Style: small white text on the 1080×1080 square canvas
+- Style: small white text on the 1080×1440 portrait canvas
 - Slides: ALL slides
 
 ### 2.2 Brand icon (creator brand logo)
@@ -257,7 +257,7 @@ faces and surfaces that scream synthetic.
 | Spec | Value |
 |---|---|
 | Image platform | Nano Banana Pro (exclusive) |
-| Aspect ratio | **1:1 square (1080×1080)** — Imagen-native ratio. **Do NOT request 4:5** — Imagen / Nano Banana Pro silently rejects non-standard ratios and falls back to 16:9 default (verified production failure on draft #28's first render). The only Imagen-supported ratios are 1:1, 16:9, 9:16, 4:3, 3:4 — we use 1:1 because LinkedIn document-share native carousel slides are square, mobile-safe, and give the visual hook + bilingual headline enough room without ratio gamble. |
+| Aspect ratio | **3:4 portrait (1080×1440)** — Imagen-native ratio. **Do NOT request 4:5** — Imagen / Nano Banana Pro silently rejects 4:5 and falls back to 16:9 default (verified production failure on draft #28's first render). The only Imagen-supported ratios are 1:1, 16:9, 9:16, 4:3, 3:4. We use 3:4 because it gives the bilingual headline + visual hook more vertical real estate than 1:1, and the same image reposts cleanly on Instagram Feed (center-cropped to 4:5, no letterbox), TikTok photo carousel (centered with minimal letterbox), and LinkedIn carousel (full-bleed). Author headline + brand chrome inside the inner 1080×1350 zone so IG cropping doesn't truncate critical text. |
 | Resolution target | 4K (Nano Banana Pro setting) |
 | Default film stock | Kodak Portra 400 |
 | Color temperature | 3200-3500K (warm) |
@@ -265,17 +265,19 @@ faces and surfaces that scream synthetic.
 | Image style | hyperrealistic |
 | Prompt length | 300-2500 chars (target ~1500-2000 of cinematic prose) |
 
-## 9. Mobile dead zones (1080×1080 square canvas)
+## 9. Mobile dead zones (1080×1440 portrait canvas)
 
 LinkedIn carousel UI overlays the edges with profile chrome and swipe gestures. Reserve:
 
-- **Top 100px**: empty negative space — no text, no figures, no logos. LinkedIn's profile overlay sits here.
-- **Bottom 140px**: text-overlay band housing the headline + subtitle + SWIPE indicator (or social block on CTA). Smooth dark gradient blends from the bottom edge upward toward the visual content.
-- **Left/right 60px**: breathing margins — no headline glyphs cross these boundaries.
+- **Top 160px**: empty negative space — no text, no figures, no logos. LinkedIn's profile overlay sits here.
+- **Bottom 240px**: text-overlay band housing the headline + subtitle + SWIPE indicator (or social block on CTA). Smooth dark gradient blends from the bottom edge upward toward the visual content.
+- **Left/right 75px**: breathing margins — no headline glyphs cross these boundaries.
 
-The 70-80% visual / 30-40% text-overlay split (§4.2) maps to: visual content fills the upper ~70% of the 1080-tall canvas (top 100px dead zone + ~660px visual area), text overlay band occupies the lower ~30% (~320px including the bottom dead zone).
+**Cross-platform crop safe zone (CRITICAL for IG repost):** Instagram Feed crops 3:4 (1080×1440) to 4:5 (1080×1350), trimming roughly 45 pixels from the top and 45 pixels from the bottom. Author the headline text band + brand chrome (page number, SWIPE, social block) entirely inside the central 1080×1350 region (vertical pixels ~45-1395 on the 1440 canvas). The visual hero (Ali, scene, props) MAY extend into the full 1440 height — those pixels just get trimmed on IG without losing the message.
 
-Phrase to the model: `"leave the top 100 pixels empty with textured background only — no text, no figures, no logos. The bottom 140 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 60 pixels on left and right."`
+The visual / text-overlay split (§4.2) on 3:4 maps to: visual content fills the upper ~72% of the 1440-tall canvas (top 160px dead zone + ~1040px visual area), text overlay band occupies the lower ~28% (~280px including the bottom dead zone).
+
+Phrase to the model: `"leave the top 160 pixels empty with textured background only — no text, no figures, no logos. The bottom 240 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 75 pixels on left and right. Keep the headline text and brand chrome (page number, swipe indicator, social block) within the central 1080 by 1350 area so the image crops cleanly when reposted on Instagram Feed."`
 
 ## 10. Prompt body rendering rules (Nano Banana Pro literalism)
 
@@ -385,7 +387,7 @@ Single-block monolith prompts get rejected.
 2. **Scene + environment + spatial layers** — where, with foreground / middle ground / background description.
 3. **Lens + lighting + film stock + atmosphere + texture** — the cinematographer's spec sheet.
 4. **Text overlay block** — main headline (Indonesian, white), accent keywords (golden), subtitle (English, golden), brand icon center, @handle watermark center, SWIPE (GESER) > below headline, page number top-left.
-5. **Aspect ratio + constraints** — 1080×1080 square canvas (1:1), mobile dead zones (top 100px / bottom 140px / 60px side margins), in-image text rendering, no URLs anywhere in slide.
+5. **Aspect ratio + constraints** — 1080×1440 portrait canvas (3:4), mobile dead zones (top 160px / bottom 240px / 75px side margins), keep headline + chrome inside central 1080×1350 IG-safe zone, in-image text rendering, no URLs anywhere in slide.
 
 ## 12. Text overlay enforcement (ALL THREE rules — omit any one = REJECTED)
 
@@ -414,9 +416,10 @@ When authoring `image_prompt` for each slide type, walk down this checklist:
 - [ ] Brand icon center, thirty percent opacity, above watermark
 - [ ] @alisadikinma watermark center, thirty percent opacity, below brand icon
 - [ ] SWIPE (GESER) > below headline (NOT bottom-cramped)
-- [ ] Mobile dead zones respected (top 100px / bottom 140px / 60px side margins)
+- [ ] Mobile dead zones respected (top 160px / bottom 240px / 75px side margins)
 - [ ] WOW gate 6/8+ — all 8 elements present
-- [ ] Aspect ratio 1080×1080 square (1:1) — never request other ratios
+- [ ] Aspect ratio 1080×1440 portrait (3:4) — never request other ratios
+- [ ] Headline + brand chrome confined to central 1080×1350 IG-safe zone
 - [ ] No http:// or https:// URLs anywhere
 
 ### Body (proof / listicle items)

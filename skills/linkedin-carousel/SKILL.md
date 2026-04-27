@@ -243,29 +243,28 @@ Pull 1-2 specifics per prompt from these categories to prevent the "AI-perfect g
 
 ### 4.7 Mobile dead zones + technical specs
 
-The canvas aspect ratio is decided by the BACKEND wrapper (`LinkedInCarouselImageService::buildPayload`) which currently sends `aspect_ratio: '1:1'` to GeminiGen — verified working on production after a 4:5 attempt fell back to 16:9 default on draft #28's first render. The carousel-gen sister plugin (`platform-specs.md`) lists 4:5 as a native NB2-supported ratio, so the wrapper is the constraint, not the model. Until the wrapper is updated and re-tested, this skill MUST author prompts targeting the **1:1 (1080×1080) square canvas**.
+The canvas is **3:4 portrait (1080×1440)** — Imagen-native ratio (one of `1:1, 16:9, 9:16, 4:3, 3:4`), set by the backend wrapper (`LinkedInCarouselImageService::buildPayload`) sending `aspect_ratio: '3:4'` to GeminiGen. Chosen over 1:1 to give the bilingual headline + visual hook more vertical real estate, and over 4:5 because GeminiGen empirically rejected 4:5 on draft #28's first render (fell back to 16:9 default).
 
-**Cross-platform reuse** — same image, three platforms — will require switching the wrapper to **4:5 (1080×1350)** since that is the cross-platform sweet spot:
+**Cross-platform reuse** — the same 3:4 (1080×1440) image posts cleanly on all three target platforms:
 
-| Platform | Native carousel ratio | Notes |
+| Platform | Native carousel ratio | What 3:4 does there |
 |---|---|---|
-| Instagram Feed | **4:5 (1080×1350)** | Native — maximum vertical real estate |
-| LinkedIn carousel | 4:5 or 1:1 | Both supported; 4:5 recommended for IG parity |
-| TikTok photo carousel | 9:16 native; 4:5 displayed with side bars | 4:5 acceptable; image is centered |
-| Default cross-platform | **4:5 (1080×1350)** | The single ratio that posts cleanly on IG + LinkedIn + TikTok |
+| LinkedIn carousel | 4:5 or 1:1 | Renders full-bleed; both ratios supported |
+| Instagram Feed | 4:5 (1080×1350) | Center-cropped to 4:5 — minor top/bottom trim, no letterbox |
+| TikTok photo carousel | 9:16 (1080×1920) | Centered with small top/bottom letterbox — image stays sharp |
 
-Until the backend ships a 4:5 retry path (or confirms NB2 wrapper supports it), continue authoring for 1:1. The same prompt body (subject, scene, lighting, brand chrome) transfers to 4:5 — only the dead zone numbers change. Switch dead zones to 4:5 values when the wrapper is updated:
+Authoring discipline: keep the **headline text band + brand chrome (page number / SWIPE / social block) inside the inner 1080×1350 4:5 safe zone** so when Instagram crops, no critical text is lost. The visual hero (Ali, scene, props) can extend into the full 1440 height — those pixels will simply be trimmed on IG without losing the message.
 
 | Ratio | Top dead zone | Bottom dead zone | Side margins | Visual area | Text band |
 |---|---|---|---|---|---|
-| **1:1 (1080×1080)** — current | 100px | 140px | 60px | upper ~660px | lower ~280px |
-| **4:5 (1080×1350)** — future cross-platform | 150px | 200px | 75px | upper ~825px | lower ~325px |
+| **3:4 (1080×1440)** — current default | 160px | 240px | 75px | upper ~1040px | lower ~280px |
+| 4:5 IG-safe inner band | 105px (top trim ~45px on IG) | 195px (bottom trim ~45px on IG) | 75px | — | — |
 
-Phrase to the model (1:1, current): `"leave the top 100 pixels empty with textured background only — no text, no figures, no logos. The bottom 140 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 60 pixels on left and right."`
+Phrase to the model: `"leave the top 160 pixels empty with textured background only — no text, no figures, no logos. The bottom 240 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 75 pixels on left and right. Keep the headline text and brand chrome (page number, swipe indicator, social block) within the central 1080 by 1350 area so the image crops cleanly when reposted on Instagram Feed."`
 
 Fixed technical specs (mention in paragraph 5 of every prompt):
 
-- Aspect ratio: 1080×1080 square (1:1) — current backend default; IMPORTANT, do not request other ratios until the wrapper supports them
+- Aspect ratio: 1080×1440 portrait (3:4) — IMPORTANT, do not request other ratios; the wrapper hardcodes 3:4
 - Default film stock: Kodak Portra 400
 - Color temperature: 3200-3500K (warm)
 - Color grade: warm golden amber
@@ -301,7 +300,7 @@ Each `image_prompt` MUST use paragraph breaks separating these sections — sing
 2. **Scene + environment + spatial layers** (foreground / middle / background)
 3. **Lens + lighting + film stock + atmosphere + texture** (cinematographer's spec sheet — described as visual properties, NEVER as literal font names or lens specs per §4.8)
 4. **Text overlay block** — main headline (Indonesian, white) + accent keywords (golden) + subtitle (English, golden) + brand icon center thirty percent + @alisadikinma watermark center thirty percent + SWIPE (GESER) > below headline + page number top-left
-5. **Aspect ratio + constraints** — 1080×1080 square canvas, mobile dead zones (top 100px / bottom 140px / 60px side margins), in-image text rendering, no URLs in slide
+5. **Aspect ratio + constraints** — 1080×1440 portrait canvas (3:4), mobile dead zones (top 160px / bottom 240px / 75px side margins), keep headline + chrome inside central 1080×1350 IG-safe zone, in-image text rendering, no URLs in slide
 
 ### 4.10 Zero URLs in slide images
 
