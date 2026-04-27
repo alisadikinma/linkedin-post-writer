@@ -22,6 +22,12 @@ These are injected via `--append-system-prompt-file` at runtime by `LinkedInGene
 - `refs-linkedin-carousel.md` — TWO bundled docs: (1) cover hook frameworks, slide-count rules, dead zones, typography scale, "Build in Public" flow, Human Fingerprint guidance, Direct Answer Block spec; (2) **Carousel Image Standards** — visual hook spec, bilingual headline contract, branding chrome (page number / brand icon / @handle / SWIPE), creator-face allocation, WOW 8-element gate, hyperrealistic anti-AI-look rules, mobile dead zones
 - `refs-linkedin-playbook.md` — 2026 algorithm mechanics, pillars, anti-slop blacklist, hashtag rules
 
+### Upstream image framework (single source of truth)
+
+The general cinematic image framework — WOW 8-element gate, hyperrealistic anti-AI-look, hook visual library, prompt formulas, Nano Banana Pro literalism rules — lives in the sister plugin **`ai-image-carousel-prompt-gen`** (`D:\Projects\claude-plugin\ai-image-carousel-prompt-gen\references\`). The `refs-linkedin-carousel.md` shipped with this plugin is the **LinkedIn delta** over that framework — same standards, narrowed to LinkedIn slide count + slide types + brand chrome + caption authoring. When a rule in this skill conflicts with the upstream framework, the upstream framework wins on cinematography / image craft; this skill wins on LinkedIn-specific narrative + post-body authoring.
+
+Treat the carousel-gen plugin as the canonical reference for: aspect ratio decisions, NB2 prompt sweet spot, character consistency across slides, split-panel rules, text rendering accuracy, failure modes. This skill should NOT re-derive any of those — it should defer.
+
 ## Inputs
 
 The calling pipeline (`linkedin-gen` orchestrator or direct subagent) passes a JSON object matching `CarouselInputSchema` (see `schema.ts`):
@@ -52,21 +58,36 @@ Default for listicle inputs: **9 slides**. Always fall within the [7, 10] range 
 
 `total_slides` MUST equal `slides.length` in the output; the schema enforces this.
 
-## Step 3 — Author slides using the "Build in Public" structure
+## Step 3 — Author slides using the 5-act narrative framework
 
-Every carousel in v1.0 uses the same structural template (`structure: 'build_in_public'`). Slot the 9-slide flow like this (adjust counts for 7 or 10 total):
+Every carousel follows the same narrative spine — **HOOK → FORESHADOW → BODY → PEAK → CTA**. This is not stylistic — it is structural. Without all 5 beats, the deck either dies on slide 1 (no hook), loses the reader by slide 4 (no foreshadow tension), wanders without payoff (no peak), or fails to convert engagement (no CTA). The structural template (`structure: 'build_in_public'`) maps the 5 acts to slide positions:
 
-| Slide | layout_hint | Purpose | Copy length guidance |
-|---|---|---|---|
-| 1 | `cover` (is_cover=true) | Hook per `brief.hook_framework`. 5-12 word headline that promises a specific payoff, resolved only on the final slide. | 40-180 chars |
-| 2 | `body` | Expand the stakes. Why this matters right now. | 80-260 chars |
-| 3 | `body` | Proof / first insight (or first listicle item for listicle inputs). | 80-260 chars |
-| 4 | `human_fingerprint` | Ali's war story / proprietary metric / hard-won failure. Reuses `creator_brand_logo` asset as the hero figure (Addendum 2 D11). Authentic first-person voice. | 120-320 chars |
-| 5 | `body` | Continue proof / listicle items 2-3. | 80-260 chars |
-| 6 | `body` | Continue proof / listicle items 4-5. | 80-260 chars |
-| 7 | `body` | Final proof / listicle items 6-7 / the insight payoff. | 80-260 chars |
-| 8 | `direct_answer` | Short lead-in copy (~150-400 chars, within the uniform schema bound of 10-420). The real substance lives in the separate `direct_answer_block` field: **30-80 words / 150-600 chars** — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. | 10-420 chars copy (lead-in) + 150-600 chars direct_answer_block |
-| 9 | `cta` (is_cta=true) | 5+ word comment-prompting question + "Blog link in comments 👇" reminder. Question targets the 15× Comment Quality weight in the Depth Score formula. | 100-320 chars |
+### The 5 acts
+
+1. **HOOK** (slide 1, `cover`) — pattern interrupt that stops the scroll. Promises a specific payoff that only resolves on the final slide. Visually MUST be **nyentrik dan nyeleneh** — absurdist, surreal, anachronistic, or vividly literal — never a polite headshot or a stock-photo abstract. See §4.3 for the visual mandate.
+2. **FORESHADOW** (slide 2, `body`) — the "wait, what?" moment after the hook. Sets the stakes, names what's at risk RIGHT NOW, and TEASES the structure of what's coming without spoiling it. The reader should finish slide 2 thinking "I need to keep swiping to see how this plays out". Tension > information here.
+3. **BODY** (slides 3 → N-2, mix of `body` + `human_fingerprint`) — the substance. Proof, signals, evidence, items. The `human_fingerprint` slide (Ali's war story / proprietary metric / hard-won failure) sits inside this block, NOT outside it — it's the credibility anchor that earns the right to the PEAK that follows. Each body slide MUST advance the argument; no filler.
+4. **PEAK** (slide N-1, `direct_answer`) — the climactic insight. The single AHA moment the entire deck has been building toward. This is also the AI-search-optimized `direct_answer_block` — Perplexity / ChatGPT search crawlers scrape this paragraph as the article's canonical answer. PEAK = the payoff promised in the HOOK, finally landed.
+5. **CTA** (slide N, `cta`) — comment-prompting question + link-in-comments reminder. Visually MUST be **nyentrik dan nyeleneh** at the same level as the HOOK — this is the structural twin of slide 1, not a polite sign-off. A bland CTA after a striking cover is a cliff-edge for engagement. See §4.4.1 for the visual mandate.
+
+### Slide-position mapping (9-slide default; adjust counts for 7 or 10 total)
+
+| Slide | Act | layout_hint | Purpose | Copy length |
+|---|---|---|---|---|
+| 1 | **HOOK** | `cover` (is_cover=true) | Hook per `brief.hook_framework`. 5-12 word headline that promises a specific payoff, resolved only on the PEAK slide. | 40-180 chars |
+| 2 | **FORESHADOW** | `body` | Set the stakes + tease the framework. Why this matters NOW. End on tension that demands the next swipe. | 80-260 chars |
+| 3 | BODY | `body` | First proof / first listicle item / first signal. | 80-260 chars |
+| 4 | BODY | `human_fingerprint` | Ali's war story / proprietary metric / hard-won failure. Authentic first-person voice. The credibility anchor before more proof. | 120-320 chars |
+| 5 | BODY | `body` | Continue proof / listicle items 2-3. | 80-260 chars |
+| 6 | BODY | `body` | Continue proof / listicle items 4-5. | 80-260 chars |
+| 7 | BODY | `body` | Final proof / listicle items 6-7. | 80-260 chars |
+| 8 | **PEAK** | `direct_answer` | Climactic insight — the payoff the HOOK promised. Short lead-in copy (~150-400 chars, schema bound 10-420). The real substance lives in `direct_answer_block`: **30-80 words / 150-600 chars** — self-contained paragraph summarizing the post's core answer, optimized for AI search crawlers (Perplexity, ChatGPT search). Must be standalone-readable. | 10-420 chars copy + 150-600 chars direct_answer_block |
+| 9 | **CTA** | `cta` (is_cta=true) | 5+ word comment-prompting question + "Blog link in comments 👇" reminder. Question targets the 15× Comment Quality weight in the Depth Score formula. | 100-320 chars |
+
+For 7-slide listicles: HOOK (1) → FORESHADOW (2) → BODY (3-5, includes human_fingerprint) → PEAK (6) → CTA (7).
+For 10-slide case studies: HOOK (1) → FORESHADOW (2) → BODY (3-8, includes human_fingerprint + extra proof) → PEAK (9) → CTA (10).
+
+The HOOK and PEAK form a promise/payoff pair — the wording on slide 1 should match the resolution on slide N-1. If the cover says "Why $60B isn't crazy", the PEAK paragraph must explicitly answer that question. Mismatched HOOK/PEAK reads as bait-and-switch and tanks Depth Score.
 
 Hard structural invariants (schema-enforced):
 
@@ -116,9 +137,20 @@ Both lines positioned starting from the **vertical center of the image extending
 
 Missing any one = REJECTED. These three guard against bad text hierarchy.
 
-### 4.3 Visual Hook (cover slide ONLY — slide 1)
+### 4.3 Visual Hook (cover slide — HOOK act, slide 1) — must be NYENTRIK DAN NYELENENG
 
-The cover slide's `image_prompt` MUST describe an **absurdist, surreal, or vividly literal scene** that takes a metaphor from the topic and renders it as a hyperrealistic photographic moment. Reference example: "6 INSANE billionaire routines" → brain transplant scene with Elon Musk, Mark Zuckerberg, Jeff Bezos in surgical chairs while Ali Sadikin operates as the surgeon extracting glowing brains into specimen jars.
+The cover slide's `image_prompt` MUST describe a **nyentrik dan nyeleneh** scene — eccentric, absurdist, anachronistic, or vividly literal — that takes a metaphor from the topic and renders it as a hyperrealistic photographic moment. "Nyentrik dan nyeleneh" is not a stylistic suggestion — it is the structural job of the HOOK. A polite or expected scene fails to interrupt the scroll and the entire deck dies on slide 1.
+
+Reference examples that ship the bar:
+- "6 INSANE billionaire routines" → brain transplant scene with Elon Musk, Mark Zuckerberg, Jeff Bezos in surgical chairs while Ali Sadikin operates as the surgeon extracting glowing brains into specimen jars.
+- "Future of war isn't about bombs" → Ali Sadikin as a Roman gladiator with a battered shield deflecting bullets in mid-air, sparks ricocheting off the metal, modern automatic rifles firing from off-frame, set against a crumbling temple at dusk (anachronism — gladiator + bullets).
+- "Cursor's $60B moat" → Ali standing on a chess board the size of a city block, holding a queen the size of a person, billionaires in suits frozen in mid-step around him as opponents.
+
+What makes these "nyentrik": ONE of these techniques is in play —
+1. **Anachronism** — gladiator with bullets, samurai with smartphone, cavemen running an LLM
+2. **Scale absurdism** — chess piece the size of a person, brain in a specimen jar, Earth held in palm
+3. **Hyperbolic literalism** — taking the topic's idiomatic metaphor and rendering it as a literal photographic scene (e.g., "code editor moat" → Ali surrounded by an actual water moat with floating IDE windows)
+4. **Impossible-but-believable composition** — surgery on minds, bodies, or brands; levitation; time freeze; inversion; body-horror-lite; ritual
 
 **Critical mandates (production-verified failures if violated):**
 
@@ -165,12 +197,13 @@ from the provided creator face reference image." The backend
 (`CarouselSlideEnhancer`) wires the actual face URL into GeminiGen `face_refs`,
 but the prompt body MUST place him in the scene first.
 
-### 4.4.1 CTA slide visual direction (last slide — comment-prompt)
+### 4.4.1 CTA slide visual direction (last slide — CTA act) — must be NYENTRIK DAN NYELENENG
 
-The CTA is the second-most-important slide after the cover. It must compel
-the viewer to take an action: comment, follow, or share. A bland headshot
-asking a question gets ignored. The CTA needs the same visual hook discipline
-as the cover, applied to a specific CTA-type:
+The CTA is the structural twin of the HOOK — same act-of-narrative weight, same nyentrik mandate. It is the second-most-important slide after the cover and the last visual the reader sees before deciding to comment, follow, or share. A bland corporate headshot here cliffs engagement off whatever the deck has built up.
+
+Apply the same nyentrik techniques as §4.3 (anachronism, scale absurdism, hyperbolic literalism, impossible-but-believable composition) to the CTA scene — not a "polite question pose" but a visual moment that earns the action. Reference example shipping the bar: cover slide shows Ali as a Roman gladiator deflecting bullets; CTA slide ALSO keeps Ali in the gladiator armor but in a thoughtful close-up with floating tech icons (rocket, satellite, shield, glowing dust) around him. The visual continuity is intentional — the CTA must feel like the same nyentrik universe as the cover, NOT a sudden return to corporate Ali.
+
+Pick ONE CTA type matching the topic's engagement goal:
 
 Pick ONE CTA type matching the topic's engagement goal:
 
@@ -210,17 +243,29 @@ Pull 1-2 specifics per prompt from these categories to prevent the "AI-perfect g
 
 ### 4.7 Mobile dead zones + technical specs
 
-The canvas is **1:1 square (1080×1080)** — Imagen / Nano Banana Pro silently rejects non-standard aspect ratios. Verified production failure: requesting `4:5` falls back to `16:9` default. Use 1:1 only.
+The canvas aspect ratio is decided by the BACKEND wrapper (`LinkedInCarouselImageService::buildPayload`) which currently sends `aspect_ratio: '1:1'` to GeminiGen — verified working on production after a 4:5 attempt fell back to 16:9 default on draft #28's first render. The carousel-gen sister plugin (`platform-specs.md`) lists 4:5 as a native NB2-supported ratio, so the wrapper is the constraint, not the model. Until the wrapper is updated and re-tested, this skill MUST author prompts targeting the **1:1 (1080×1080) square canvas**.
 
-- **Top 100px**: empty negative space — LinkedIn profile overlay sits here
-- **Bottom 140px**: text-overlay band (headline, subtitle, SWIPE / social block) with smooth dark gradient blending up into the visual content
-- **Left/right 60px**: breathing margins — no headline glyphs cross these
+**Cross-platform reuse** — same image, three platforms — will require switching the wrapper to **4:5 (1080×1350)** since that is the cross-platform sweet spot:
 
-Phrase to the model: `"leave the top 100 pixels empty with textured background only — no text, no figures, no logos. The bottom 140 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 60 pixels on left and right."`
+| Platform | Native carousel ratio | Notes |
+|---|---|---|
+| Instagram Feed | **4:5 (1080×1350)** | Native — maximum vertical real estate |
+| LinkedIn carousel | 4:5 or 1:1 | Both supported; 4:5 recommended for IG parity |
+| TikTok photo carousel | 9:16 native; 4:5 displayed with side bars | 4:5 acceptable; image is centered |
+| Default cross-platform | **4:5 (1080×1350)** | The single ratio that posts cleanly on IG + LinkedIn + TikTok |
+
+Until the backend ships a 4:5 retry path (or confirms NB2 wrapper supports it), continue authoring for 1:1. The same prompt body (subject, scene, lighting, brand chrome) transfers to 4:5 — only the dead zone numbers change. Switch dead zones to 4:5 values when the wrapper is updated:
+
+| Ratio | Top dead zone | Bottom dead zone | Side margins | Visual area | Text band |
+|---|---|---|---|---|---|
+| **1:1 (1080×1080)** — current | 100px | 140px | 60px | upper ~660px | lower ~280px |
+| **4:5 (1080×1350)** — future cross-platform | 150px | 200px | 75px | upper ~825px | lower ~325px |
+
+Phrase to the model (1:1, current): `"leave the top 100 pixels empty with textured background only — no text, no figures, no logos. The bottom 140 pixels house the headline text band with a smooth dark gradient blending into the visual content above. Side margins of 60 pixels on left and right."`
 
 Fixed technical specs (mention in paragraph 5 of every prompt):
 
-- Aspect ratio: 1080×1080 square (1:1) — IMPORTANT: this is fixed, do not request other ratios
+- Aspect ratio: 1080×1080 square (1:1) — current backend default; IMPORTANT, do not request other ratios until the wrapper supports them
 - Default film stock: Kodak Portra 400
 - Color temperature: 3200-3500K (warm)
 - Color grade: warm golden amber
