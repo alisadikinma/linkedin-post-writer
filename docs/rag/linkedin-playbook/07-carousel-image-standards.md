@@ -113,34 +113,92 @@ that has nothing to do with stock photography. The reference example is the
 Jeff Bezos seated in surgical chairs while a doctor extracts glowing brains
 into specimen jars. The visual is impossible, vivid, and instantly readable.
 
-### Visual hook requirements
+### 4.1 Visual hook requirements
 
-1. **Absurdist, surreal, or vividly literal** — the scene takes a metaphor
-   from the topic and renders it as a hyperrealistic photographic moment.
-   "6 INSANE billionaire routines" → brain extraction scene. "AI is replacing
+1. **Ali (creator) MUST appear in the scene as the primary or co-primary subject** —
+   describe him by name and physical action. The brand-chrome face_refs alone is
+   NOT enough; Nano Banana Pro will only render Ali's face if the prompt body
+   places a person in the scene. Default form: "Ali Sadikin standing in the
+   foreground, [doing X action], wearing [outfit], [expression keyword]".
+2. **Absurdist, surreal, or vividly literal** — take a metaphor from the topic
+   and render it as a hyperrealistic photographic moment. "6 INSANE billionaire
+   routines" → brain extraction scene with Ali as the surgeon. "AI is replacing
    designers" → designer being literally unplugged from a Wacom tablet by a
-   robot hand.
-2. **Hyperrealistic execution** — render style is photographic, NOT
+   robot hand while Ali watches with shock. "Cursor raised $60B" → Ali standing
+   on a mountain of $100 bills, looking up at a glowing Cursor logo in the sky.
+3. **Hyperrealistic execution** — render style is photographic, NOT
    illustrated, NOT cartoon. Visible skin pores, fabric weave, real lighting.
-3. **Public figures named** when relevant — name them directly ("Elon Musk
-   in chair on the left"). Nano Banana Pro recognizes public figures.
-4. **Layered composition** — foreground subject + middle ground action +
-   background context. Not a single centered figure on a flat backdrop.
-5. **Cinematic lighting** — Rembrandt 4:1 ratio, 3200K warm tungsten,
-   volumetric haze, rim lighting. Read `cinematography-lut.md` if specifics
-   needed.
-6. **Subject brand context** — when the topic discusses a specific brand
-   (Anthropic, Google, OpenAI), the relevant logos / UI / product must be
-   visible in the scene to anchor the topic. Otherwise the visual hook is
-   unmoored from the carousel content.
+4. **Public figures named** when relevant — "Elon Musk in chair on the left,
+   Mark Zuckerberg next to him, Jeff Bezos third". Nano Banana Pro recognizes
+   public figures. Ali stands beside or operates on them.
+5. **Layered composition** — foreground subject + middle ground action +
+   background context. NOT a single centered figure on a flat backdrop. NOT
+   one big text block dominating the canvas.
+6. **Cinematic lighting** — Rembrandt 4:1 ratio, 3200K warm tungsten,
+   volumetric haze, rim lighting on Ali's face for separation.
+7. **Subject brand context** — when the topic discusses a specific brand
+   (Anthropic, Google, OpenAI, Cursor, xAI), the relevant logos / UI / product
+   must be visible in the scene to anchor the topic. Otherwise the visual hook
+   is unmoored from the carousel content.
 
-### Visual hook anti-patterns
+### 4.2 Visual-to-text ratio (NON-NEGOTIABLE)
+
+**The image is mostly visual; text occupies a controlled lower band.**
+
+- **70-80% of the canvas = visual content** (Ali in scene, props, background, atmosphere)
+- **30-40% of the canvas = text overlay zone** (lower portion only, with smooth dark gradient blending into the visual above)
+- **The text overlay MUST NOT obscure Ali's face or the focal subject** — Ali's face stays in the upper or middle portion of the frame, fully visible
+- **The dark gradient zone occupies the bottom half** (smooth dark-to-transparent gradient, NOT a hard horizontal line cut)
+- Anti-pattern: a slide that's 60% giant text on a flat background with a tiny graphic on the side. That's a v0.3.0 mistake — the cover MUST be a SCENE first, with text as overlay second.
+
+### 4.3 Hook expression library (cover slide — pick one matching the framework)
+
+Each `brief.hook_framework` maps to a specific Ali expression. Bake the
+expression keywords directly into the prompt body's first paragraph.
+
+| Hook framework | Ali's face/body | Expression phrase |
+|---|---|---|
+| **PAS** (pain → agitate → solve) | Furrowed brow, narrowed eyes, hands gripping head OR pointing accusingly at the pain source | "Ali Sadikin with intense protective urgency, brows drawn together creating a deep vertical furrow, jaw set with determination, looking directly into camera with a 'this matters — listen to me' gravity" |
+| **AIDA** (attention number) | Eyes wide, mouth slightly parted in awe, gesturing at the data point | "Ali Sadikin's eyes blown wide open with full iris visible, eyebrows shot up high creating deep forehead lines, jaw dropped slightly in genuine astonishment, hand raised palm-out at shoulder height" |
+| **before_after** | Split face — half tired/skeptical, half lit-up/transformed; OR holding before-vs-after objects | "Ali Sadikin caught mid-transformation, half his face under cool dim light showing tiredness, the other half catching warm golden rim light with a fresh awakening expression, contrast made visible" |
+| **loss_aversion** | Worried, leaning forward, finger pointed at the audience | "Ali Sadikin chin lowered five degrees, looking up through brows with worried protective concern, one finger pointed at camera, body squared in confrontational authority" |
+| **contrarian** | Smirk, one eyebrow raised, arms crossed OR holding the consensus thing dismissively | "Ali Sadikin closed-lip smirk with one corner lifted, one eyebrow raised higher than the other creating asymmetric intrigue, head tilted ten degrees to one side, arms crossed in 'I know better' confidence" |
+
+### 4.4 Visual action library (16 absurd action types — pick one)
+
+The cover scene needs an ABSURD VISUAL ACTION that makes the viewer stop
+scrolling. Mix the action with the topic's metaphor. These are categories,
+not literal — adapt to topic.
+
+| # | Action | Example application |
+|---|---|---|
+| 1 | **Surgery / dissection** | Operating on a brain, computer, or company logo on a surgical table |
+| 2 | **Levitation / floating** | Subject floating mid-air, surrounded by floating objects |
+| 3 | **Explosion / shattering** | Glass / building / device shattering mid-frame |
+| 4 | **Crowd of public figures** | 3-5 famous people lined up, Ali among them or operating on them |
+| 5 | **Giant scale / miniature** | Ali tiny inside a giant phone; OR holding a tiny version of a billion-dollar company in his palm |
+| 6 | **Apocalypse / dystopia** | Burning city, smoke, but Ali calmly walking through with a laptop |
+| 7 | **Time freeze / motion frozen** | Coffee mid-pour suspended in air, papers frozen mid-fly |
+| 8 | **Inversion / upside-down** | Office turned 90 or 180 degrees, Ali walking on the ceiling |
+| 9 | **Body horror / impossible anatomy** | Brain glowing through skull, eyes replaced by data displays, third hand emerging |
+| 10 | **Animal / object hybrid** | Computer with octopus tentacles plugged into 8 monitors |
+| 11 | **Heist / spy thriller** | Ali in a vault stealing data crystals; OR cracking a corporate safe |
+| 12 | **Magic / supernatural** | Glowing runes around a laptop, Ali casting a spell at code |
+| 13 | **Sports / competition** | Ali in a boxing ring with two AI assistants in opposite corners |
+| 14 | **Construction / industrial** | Ali welding code together with a literal welding torch |
+| 15 | **Game show / trial** | Tech CEOs in a game show set, Ali as the host |
+| 16 | **Ritual / ceremony** | Ali as high priest at a tech altar with employees bowing |
+
+### 4.5 Visual hook anti-patterns (REJECT these — re-author if you find them)
 
 - ❌ Stock photo of person at laptop
 - ❌ Generic abstract gradient with floating icons
-- ❌ A single text block on a flat colored background
+- ❌ A single text block on a flat colored background — a building screenshot on the side does NOT count as a visual hook
 - ❌ AI-perfect glossy faces (must include micro-imperfections)
 - ❌ "Modern minimalist" with no specific scene direction
+- ❌ Cover where Ali's face is absent — the brand-chrome face_refs alone won't render him; the prompt body must place him in the scene
+- ❌ Cover where text occupies more than 40% of the canvas
+- ❌ Two-panel split with text on one side and a screenshot on the other (this is a v0.3.0 anti-pattern that produced the "engineer xAI" cover that lacked any visual hook)
 
 ## 5. Subject brand context (factual body slides)
 
@@ -234,6 +292,73 @@ generated images:
 | Sizing via description | "MASSIVE billboard-scale" | "the largest possible font size that fills the width, extra bold weight" |
 | Positioning lowercase | "CENTERED in middle" | "centered in the middle" |
 | Negations lowercase | "NOT cold blue" | "not cold blue" |
+
+### 10.1 Font name + point size leaks (CRITICAL — verified prompt-leak failure mode)
+
+Nano Banana Pro renders the literal strings "JetBrains Mono", "Inter", "Space
+Grotesk", "20pt", "24pt-equivalent", "Bold", "Black weight", "f/1.8", "85mm",
+"Kodak Portra 400", etc. as visible text in the image whenever they appear in
+the prompt body. This was observed in production on the very first carousel
+generation: the cover image rendered "1/9 JetBrains Mono 20pt" as a literal
+caption in the bottom-right corner, completely breaking the design.
+
+**NEVER write font names, point sizes, lens specs, or film stock names as
+distinct text fragments in the prompt body.** Describe them implicitly
+through characteristics:
+
+| ❌ WRONG (leaks as text) | ✅ CORRECT (renders as visual property) |
+|---|---|
+| "Headlines in Space Grotesk Bold" | "headlines in a clean condensed sans-serif at extra-bold weight" |
+| "Body copy in Inter at 24pt-equivalent" | "body copy in a clean humanist sans-serif at the largest size that fills the width" |
+| "Data labels in JetBrains Mono" | "data labels in a clean monospace style typeface" |
+| "Page indicator in JetBrains Mono at 18pt" | "page indicator in a small clean monospace style numeric label" |
+| "Lens: 85mm f/1.8" | "shallow depth of field with a slightly compressed focal length feel" |
+| "Kodak Portra 400" | "warm golden cinematic color grade with subtle film grain" |
+| "Rembrandt 4:1 ratio at 3200K" | "Rembrandt-style key light from front-left creating a triangle of light on the off-cheek, warm tungsten color cast" |
+
+The rule of thumb: if a text fragment looks like a spec sheet entry (units,
+brand name, ratio number, font name), describe it AROUND the meaning rather
+than naming it directly. The image model already knows what "warm tungsten"
+or "shallow depth of field" means — naming the lens or film stock just
+spawns a literal text artifact.
+
+### 10.2 Verbatim text strings — when ALL CAPS is acceptable
+
+The ONLY strings that may appear ALL CAPS or as quoted literals in the prompt
+body are the strings the image model should render as actual typography in
+the image:
+
+- Headline text quoted verbatim: `reading "INSANE — 6 RUTINITAS GILA MILIARDER TECH"` (the literal text that becomes the headline)
+- Subtitle text quoted verbatim: `reading "The Insane Daily Habits Behind Their Billions"` (becomes the English subtitle)
+- HUD/data callouts: `"$60B"`, `"99,000 SEARCHES/SEC"` (literal numbers in scene)
+- CTA literal: `"SWIPE (GESER) >"` (rendered as the swipe indicator)
+- Watermark handle: `"@alisadikinma"` (rendered as watermark text)
+- Page number: `"3/9"` (rendered as page indicator)
+
+Anything else — sizing instructions, positioning instructions, font name
+guidance, lens specs — MUST be lowercase prose that describes the visual
+property without naming it as a spec.
+
+### 10.3 Brand chrome literals — let the backend handle them
+
+The plugin authors prose ONLY. Backend (`CarouselSlideEnhancer`) appends the
+brand chrome instruction paragraph automatically with the actual handle,
+page indicator, swipe text, and social URL pulled from settings. **Do NOT
+hand-write brand chrome literals into the prompt body** — they will be
+duplicated, may conflict with the backend's append, or may use stale values.
+
+If the plugin needs to anchor a chrome element (e.g., to position the
+headline relative to the page indicator), use placeholder tokens:
+
+- `{{HANDLE}}` → resolved to `@alisadikinma`
+- `{{PORTFOLIO_URL}}` → resolved to `https://alisadikinma.com`
+- `{{PAGE_INDICATOR}}` → resolved to `"3/9"`
+- `{{SWIPE_TEXT}}` → resolved to `"SWIPE (GESER) >"` (empty on CTA)
+
+These are interpolated by the backend at dispatch time. Authoring the literal
+strings instead of the tokens is fine too — the backend's `appendBrandChrome`
+is idempotent and skips the chrome paragraph when it detects the handle and
+page indicator are already in the prompt.
 
 ### What MAY appear in ALL CAPS in the prompt body
 

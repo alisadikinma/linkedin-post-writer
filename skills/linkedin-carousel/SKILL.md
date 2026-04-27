@@ -118,33 +118,76 @@ Missing any one = REJECTED. These three guard against bad text hierarchy.
 
 ### 4.3 Visual Hook (cover slide ONLY — slide 1)
 
-The cover slide's `image_prompt` MUST describe an **absurdist, surreal, or vividly literal scene** that takes a metaphor from the topic and renders it as a hyperrealistic photographic moment. Reference example: "6 INSANE billionaire routines" → brain transplant scene with Elon Musk, Mark Zuckerberg, Jeff Bezos in surgical chairs while a doctor extracts glowing brains into specimen jars.
+The cover slide's `image_prompt` MUST describe an **absurdist, surreal, or vividly literal scene** that takes a metaphor from the topic and renders it as a hyperrealistic photographic moment. Reference example: "6 INSANE billionaire routines" → brain transplant scene with Elon Musk, Mark Zuckerberg, Jeff Bezos in surgical chairs while Ali Sadikin operates as the surgeon extracting glowing brains into specimen jars.
 
-Visual hook requirements:
+**Critical mandates (production-verified failures if violated):**
 
-- Hyperrealistic photography (NOT illustrated, NOT cartoon, NOT vector)
-- Public figures named directly when relevant — Nano Banana Pro recognizes them
-- Layered composition (foreground + middle + background)
-- Cinematic lighting — Rembrandt 4:1, 3200K warm tungsten, volumetric haze
-- Subject brand context if the topic discusses a specific brand
+1. **Ali Sadikin MUST appear in the scene as primary or co-primary subject.** Pushing the creator face URL to `face_refs` alone is NOT enough — Nano Banana Pro will only render Ali if the prompt body explicitly places a person in the scene. The prompt's first paragraph MUST start with "Ali Sadikin [doing X], wearing [outfit], [expression keyword]". A cover with no person in the prose will render with NO creator face regardless of face_refs.
 
-Anti-patterns to avoid: stock photos at laptops, generic gradients with floating icons, single text blocks on flat color, AI-perfect glossy faces with no pores or imperfections.
+2. **The cover MUST be a SCENE first, with text as overlay second.** A cover with a giant text block dominating 60% of the canvas plus a small graphic on the side is a v0.3.0 anti-pattern that already shipped to production and was rejected. Visual content fills 70-80% of the canvas; text is in the lower 30-40% only as a smooth gradient overlay that does NOT obscure Ali's face.
+
+3. **Pick a Visual Action category (one of 16)** from §07 §4.4 — surgery, levitation, explosion, public-figure crowd, giant scale, apocalypse, time freeze, inversion, body horror, animal/object hybrid, heist, magic, sports, construction, game show, ritual. The action takes the topic's metaphor and renders it as an impossible/striking photographic moment.
+
+4. **Pick a Hook Expression** from §07 §4.3 — match `brief.hook_framework` to the matching expression library entry (PAS=intense protective, AIDA=jaw-dropped awe, before_after=split-face transformation, loss_aversion=worried-finger-pointing, contrarian=smirk-asymmetric). Bake the expression keywords into the prompt's first paragraph.
+
+5. **Public figures named directly** when relevant — "Elon Musk on the left, Mark Zuckerberg next to him". Nano Banana Pro recognizes them. Ali stands beside or operates on them.
+
+6. **Hyperrealistic photography** — NOT illustrated, NOT cartoon, NOT vector. Visible skin pores, fabric weave, real lighting.
+
+7. **Subject brand context** — the topic's logos / UI / product visible in the scene to anchor the topic.
+
+Anti-patterns (verified rejection causes):
+- ❌ Cover where Ali's face is absent (face_refs alone won't render it)
+- ❌ Cover where text occupies more than 40% of the canvas
+- ❌ Two-panel split: text on one side, screenshot on the other (the "Engineer xAI" v0.3.0 mistake)
+- ❌ Stock photo of person at laptop / generic abstract gradient with floating icons
+- ❌ AI-perfect glossy faces with no pores or imperfections
+- ❌ "Modern minimalist" with no specific scene direction
 
 ### 4.4 Creator face allocation per slide type
 
 When the creator's face (Ali) appears in the rendered image:
 
-| Slide type | Creator face? | Notes |
+| Slide type | Creator face? | Scene direction |
 |---|---|---|
-| `cover` | **YES** — exaggerated emotion matching hook framework | Use `{{CREATOR_FACE}}` placeholder |
-| `body` (no human figures in scene) | NO | Pure object/abstract/B-roll |
-| `body` (with human figures) | **YES** | Creator most prominent foreground figure |
-| `body` (about a specific public figure) | Public figure primary, creator optional companion | Name public figures directly |
-| `human_fingerprint` | **YES** — first-person war story | Authentic, slight imperfections (sweat, tired eyes) |
-| `direct_answer` | Optional | Text-forward — only when scene benefits |
-| `cta` | **YES** — warm generous expression | MS shot |
+| `cover` | **YES — mandatory in prompt body** | Match hook framework expression (§4.3 + §07 §4.3). Place Ali in the visual action scene (§07 §4.4) as primary or co-primary subject. |
+| `body` (no human figures in scene) | NO | Pure object / abstract / B-roll. Subject brand UI / logo / product visible. |
+| `body` (with human figures) | **YES — mandatory in prompt body** | Ali as the most prominent foreground figure, slightly closer to camera in crowd scenes. |
+| `body` (about a specific public figure) | Public figure primary, Ali optional companion | Name the public figure directly; Ali stands beside or interacts with them. |
+| `human_fingerprint` | **YES — Ali IS the war story** | First-person scene: late-night debugging, whiteboard mid-thought, post-launch fatigue. Authentic micro-imperfections (sweat, stubble, tired eyes, unkempt hair). |
+| `direct_answer` | Optional — only when scene benefits | Text-forward composition; creator face only if it adds meaning. |
+| `cta` | **YES — mandatory + must be nyentrik (striking)** | See §4.4.1 below — the CTA must compel the viewer to comment / follow / share. NOT a polite head-and-shoulders headshot. |
 
-When creator face is required, include in the prompt body: `"Maintain exact appearance from the provided creator face reference image."` The backend (`CarouselSlideEnhancer`) wires the actual face URL into GeminiGen `face_refs`.
+When creator face is required, include in the prompt body's first paragraph:
+"**Ali Sadikin [doing specific action], wearing [specific outfit], [specific
+expression keyword from §07 §4.3]**." Then append: "Maintain exact appearance
+from the provided creator face reference image." The backend
+(`CarouselSlideEnhancer`) wires the actual face URL into GeminiGen `face_refs`,
+but the prompt body MUST place him in the scene first.
+
+### 4.4.1 CTA slide visual direction (last slide — comment-prompt)
+
+The CTA is the second-most-important slide after the cover. It must compel
+the viewer to take an action: comment, follow, or share. A bland headshot
+asking a question gets ignored. The CTA needs the same visual hook discipline
+as the cover, applied to a specific CTA-type:
+
+Pick ONE CTA type matching the topic's engagement goal:
+
+| CTA type | Ali's posture + expression | Scene direction |
+|---|---|---|
+| **Polarize** ("Which side are you on?") | Smirk, one eyebrow raised, arms crossed in confident challenge | Ali standing between two physical sides — left side bright/clean, right side dark/cluttered — gesturing the viewer to pick |
+| **Question** ("What would you do?") | Warm direct gaze into camera, head tilted, hand at chin in genuine curiosity | Tight close-up of Ali's face with subject brand element softly out of focus in the background |
+| **Identity Tag** ("If you're a [type], comment X") | Open laughing warmth, nudging gesture toward camera | Ali surrounded by representations of the identity types (laptops for devs, mics for creators, etc.) |
+| **Engagement Reward** ("Comment 'GUIDE' for the framework") | Generous excitement, presenting a glowing object/document toward camera | Ali holding a literal "reward" — a glowing book, a key, a folder labeled with the prize |
+
+Anti-patterns for CTA:
+- ❌ Boring corporate headshot of Ali smiling at the camera with text "What do you think?"
+- ❌ Empty hands, neutral pose, no scene context
+- ❌ CTA without subject brand context (the viewer should still know what topic this is about)
+- ❌ Text-heavy slide where the social block (IG/TikTok/LinkedIn icons + handle + URL) is buried
+
+The CTA MUST include the social block — IG/TikTok/LinkedIn icons in a row, `@alisadikinma` next to the icons, `https://alisadikinma.com` below — in the lower third of the canvas. Backend's `CarouselSlideEnhancer` appends this automatically; do NOT bake it into the prompt body.
 
 ### 4.5 WOW Quality Gate (mandatory — minimum 6/8, all 8 elements present)
 
@@ -183,7 +226,7 @@ Fixed technical specs (mention in paragraph 5 of every prompt):
 
 ### 4.8 Prompt body rendering rules (Nano Banana Pro literalism)
 
-Nano Banana Pro renders **every word in the prompt** as visible image content unless contextualized otherwise. Strict rules:
+Nano Banana Pro renders **every word in the prompt** as visible image content unless contextualized otherwise. The full rule set is in §07 §10. Most-violated rules summarized here:
 
 - **Only IN-IMAGE text in ALL CAPS** — never write "MANDATORY: render the icon" (use lowercase: "render the icon")
 - **No raw percentages** — write "thirty percent opacity" not "30%"
@@ -192,7 +235,16 @@ Nano Banana Pro renders **every word in the prompt** as visible image content un
 - **Sizing via description** — "the largest possible font size that fills the width, extra bold weight" not "MASSIVE billboard-scale"
 - **Positioning lowercase** — "centered in the middle" not "CENTERED in middle"
 
-What MAY appear in ALL CAPS: the actual in-image text (headline quoted verbatim, subtitle quoted verbatim, "@alisadikinma", "SWIPE (GESER) >", "3/9", "$60B", etc).
+**CRITICAL — NEVER write font names, point sizes, lens specs, or film stock names as text fragments.** Verified production failure: a v0.3.0 cover prompt contained "JetBrains Mono 20pt" as a text-overlay direction; Nano Banana Pro rendered the literal string "1/9 JetBrains Mono 20pt" in the corner of the image. See §07 §10.1 for the full anti-pattern table:
+
+| ❌ WRONG (leaks as text) | ✅ CORRECT (renders as visual property) |
+|---|---|
+| "Headlines in Space Grotesk Bold" | "headlines in a clean condensed sans-serif at extra-bold weight" |
+| "Page indicator in JetBrains Mono at 18pt" | "page indicator in a small clean monospace style numeric label" |
+| "Lens: 85mm f/1.8" | "shallow depth of field with a slightly compressed focal length feel" |
+| "Kodak Portra 400" | "warm golden cinematic color grade with subtle film grain" |
+
+What MAY appear in ALL CAPS or as literal quoted strings: the actual in-image text the model should render as typography (headline quoted verbatim, subtitle quoted verbatim, "@alisadikinma", "SWIPE (GESER) >", "3/9", "$60B", etc). Anything that looks like a spec sheet entry — units, brand names, ratios — describe AROUND the meaning instead of naming it.
 
 ### 4.9 Required prompt structure (5-paragraph form)
 
