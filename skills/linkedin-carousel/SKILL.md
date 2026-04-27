@@ -19,7 +19,7 @@ This skill emits JSON only. It does NOT render images (that is GeminiGen / NB2, 
 
 These are injected via `--append-system-prompt-file` at runtime by `LinkedInGenerationService` — do NOT read them with the Read tool.
 
-- `refs-linkedin-carousel.md` — cover hook frameworks, slide-count rules, dead zones, typography scale, "Build in Public" flow, Human Fingerprint guidance, Direct Answer Block spec
+- `refs-linkedin-carousel.md` — TWO bundled docs: (1) cover hook frameworks, slide-count rules, dead zones, typography scale, "Build in Public" flow, Human Fingerprint guidance, Direct Answer Block spec; (2) **Carousel Image Standards** — visual hook spec, bilingual headline contract, branding chrome (page number / brand icon / @handle / SWIPE), creator-face allocation, WOW 8-element gate, hyperrealistic anti-AI-look rules, mobile dead zones
 - `refs-linkedin-playbook.md` — 2026 algorithm mechanics, pillars, anti-slop blacklist, hashtag rules
 
 ## Inputs
@@ -84,22 +84,129 @@ Hard structural invariants (schema-enforced):
 
 ## Step 4 — Build the `image_prompt` for each slide (CRITICAL — text-baked-in)
 
-This is where Addendum 2 D9 lives. Each `image_prompt` is **300-2500 characters** (schema-enforced; target ~1500-2000 chars of cinematic prose for production-quality renders), written to instruct GeminiGen / Nano Banana Pro to render the slide's `copy` AS IN-FRAME TYPOGRAPHY — not as an overlay applied afterward. A single image generation call produces the final slide PNG with background, figure, and copy all composed together.
+Each `image_prompt` is **300-2500 characters** (schema-enforced; target ~1500-2200 chars of cinematic prose for production-quality renders), written to instruct GeminiGen / Nano Banana Pro to render the slide's `copy` AS IN-FRAME TYPOGRAPHY plus full brand chrome — not as an overlay applied afterward. A single image generation call produces the final slide PNG.
 
-Every `image_prompt` MUST include the following specifications (in natural prose — not bullet lists — the image model responds better to prose briefs):
+**The full image standards spec lives in `refs-linkedin-carousel.md` §07 (Carousel Image Standards) — it is already in your system prompt. This section is a quick checklist.** When in doubt, follow §07 §1-§14 as the law.
 
-1. **Dimensions:** 1080×1350 pixel portrait canvas (LinkedIn's Reach King ratio).
-2. **Brand palette — Dark Cinema:** deep navy `#0a0f1e` or charcoal `#121826` background, warm ember accent `#ff6b35` or teal accent `#2dd4bf`, cream / off-white text `#f3f4f6` for headline and body copy. High-contrast minimalist — not corporate blue, not gradient, not generic.
-3. **Typography in-frame:**
-   - Headlines in Space Grotesk Bold
-   - Body copy in Inter at 24pt-equivalent sizing for the 1080px canvas (i.e., body glyphs should each measure roughly 36-48px tall in the rendered image — large enough that the final frame feels readable on a phone)
-   - Data / metric labels in JetBrains Mono when the slide calls out a number
-4. **The slide copy verbatim:** include the slide's `copy` field INSIDE the prompt, surrounded by double-quotes, with the instruction "render this exact text as large Space Grotesk / Inter typography filling the composition's primary copy band". This is non-negotiable — the image model must see the exact string.
-5. **Mobile dead-zone discipline:** top 150 pixels of the canvas MUST be empty negative space (LinkedIn's profile overlay sits there). Bottom 200 pixels MUST be empty except for a small page-number band. Left/right 75 pixel margins kept as breathing room. Phrase this to the image model as "leave the top 150px empty with textured background only — no text, no figures, no logos. Leave the bottom 200px similarly empty except for a small centered page indicator."
-6. **Page indicator:** explicit instruction to render `"{slide_number}/{total_slides}"` (e.g. `"3/9"`) in JetBrains Mono at roughly 18pt-equivalent, centered in the safe band ~120 pixels above the bottom edge (between the 75px margin and the 200px bottom dead zone).
-7. **Human Fingerprint slide only:** include the explicit instruction "use `creator_brand_logo` brand asset as the hero figure, centered-left in the composition at roughly 40% canvas height, with the quoted copy filling the right 55% of the frame in Space Grotesk". This signals the backend's compositing step which asset to layer in (Addendum 2 D11 — reuses existing `creator_brand_logo` until v1.1 re-litigates).
-8. **Cinematic detail:** describe mood, lighting, texture, depth. This is not decoration — cinematic prompts get better renders than flat "modern minimalist" prompts. Lean into the Dark Cinema brand: low-key lighting, subtle film grain, soft volumetric rim light on any figure, matte-paper paper-white text blocks.
-9. **Zero URLs:** NEVER include any `https://` or `http://` string in `image_prompt`. Links live only in the post's first comment, not in any slide image.
+### 4.1 Brand chrome (every slide, baked in via prompt)
+
+These elements are NON-NEGOTIABLE on every slide. Express them in the text-overlay paragraph of the prompt:
+
+- **Page number** `"{slide_number}/{total_slides}"` — top-left corner, ~75px from edges, small white text. e.g., `"3/9"`.
+- **Brand icon** — circular badge centered horizontally and vertically, **thirty percent opacity** (NEVER write "30%"), positioned directly above the @handle watermark. Render from the provided brand reference image — do not generate a new logo.
+- **@handle watermark** — the literal text `"@alisadikinma"` in white, **thirty percent opacity**, centered horizontally directly below the brand icon.
+- **SWIPE indicator** — the literal text `"SWIPE (GESER) >"` in small white, positioned directly beneath the headline text with minimal gap. **Omit this on the CTA slide only.**
+- **CTA social block (last slide ONLY)** — replaces the SWIPE indicator. Render: `"Three small social media icons (Instagram logo, TikTok logo, LinkedIn logo) in a single horizontal row with '@alisadikinma' in white text beside the icons row. Below the icons row, 'https://alisadikinma.com' in white text at slightly smaller size."`
+
+### 4.2 Bilingual headline contract (every slide that has headline copy)
+
+The slide's `copy` field is rendered in TWO LANGUAGES inside the image:
+
+- **Main headline (Bahasa Indonesia)** — translate the slide `copy` to Indonesian. White `#FFFFFF`, ALL CAPS, extra-bold condensed sans-serif (Oswald Black / Bebas Neue Bold / Impact family), the largest possible font size that fills the width.
+- **Accent keywords (2-4 within main headline)** — pick 2-4 emotionally impactful keywords inside the headline and render them in golden `#F5A623`. Same massive size and weight. NEVER highlight just one keyword.
+- **Subtitle (English)** — the original/equivalent English version, golden `#F5A623` (NEVER white — must create visual hierarchy), 70-80% size of main headline, positioned directly below.
+
+The `copy` field on the slide JSON should hold the **English** version as the canonical copy (for downstream Depth Score / banned-phrase scanning). The `image_prompt` body must spell out the **Indonesian translation** to bake in as the main headline plus the English subtitle.
+
+Both lines positioned starting from the **vertical center of the image extending downward, NOT crammed at the very bottom**. The text-overlay paragraph MUST include all three of these literal phrases:
+
+1. `"remaining text in white"` after specifying accent-colored keywords
+2. `"positioned starting from the vertical center of the image extending downward, not crammed at the very bottom"`
+3. `"subtitle must not be white"` after the subtitle line specification
+
+Missing any one = REJECTED. These three guard against bad text hierarchy.
+
+### 4.3 Visual Hook (cover slide ONLY — slide 1)
+
+The cover slide's `image_prompt` MUST describe an **absurdist, surreal, or vividly literal scene** that takes a metaphor from the topic and renders it as a hyperrealistic photographic moment. Reference example: "6 INSANE billionaire routines" → brain transplant scene with Elon Musk, Mark Zuckerberg, Jeff Bezos in surgical chairs while a doctor extracts glowing brains into specimen jars.
+
+Visual hook requirements:
+
+- Hyperrealistic photography (NOT illustrated, NOT cartoon, NOT vector)
+- Public figures named directly when relevant — Nano Banana Pro recognizes them
+- Layered composition (foreground + middle + background)
+- Cinematic lighting — Rembrandt 4:1, 3200K warm tungsten, volumetric haze
+- Subject brand context if the topic discusses a specific brand
+
+Anti-patterns to avoid: stock photos at laptops, generic gradients with floating icons, single text blocks on flat color, AI-perfect glossy faces with no pores or imperfections.
+
+### 4.4 Creator face allocation per slide type
+
+When the creator's face (Ali) appears in the rendered image:
+
+| Slide type | Creator face? | Notes |
+|---|---|---|
+| `cover` | **YES** — exaggerated emotion matching hook framework | Use `{{CREATOR_FACE}}` placeholder |
+| `body` (no human figures in scene) | NO | Pure object/abstract/B-roll |
+| `body` (with human figures) | **YES** | Creator most prominent foreground figure |
+| `body` (about a specific public figure) | Public figure primary, creator optional companion | Name public figures directly |
+| `human_fingerprint` | **YES** — first-person war story | Authentic, slight imperfections (sweat, tired eyes) |
+| `direct_answer` | Optional | Text-forward — only when scene benefits |
+| `cta` | **YES** — warm generous expression | MS shot |
+
+When creator face is required, include in the prompt body: `"Maintain exact appearance from the provided creator face reference image."` The backend (`CarouselSlideEnhancer`) wires the actual face URL into GeminiGen `face_refs`.
+
+### 4.5 WOW Quality Gate (mandatory — minimum 6/8, all 8 elements present)
+
+Every `image_prompt` must explicitly include all 8 cinematic specifications. Score 1 point per element; 6/8 minimum to ship; 8/8 ideal:
+
+1. **Lighting drama** — pattern + ratio + Kelvin (e.g., "Rembrandt 4:1 ratio, 3200K warm tungsten")
+2. **Depth layers** — three distinct planes (foreground + subject + background)
+3. **Atmosphere** — haze, volumetric particles, fog, bokeh, environmental effect
+4. **Color contrast** — warm-cool tension, accent color highlights
+5. **Emotional peak** — specific expression keyword (creator) or scene emotion (B-roll), never just "smiling"
+6. **Camera intention** — shot type + lens + aperture + angle (e.g., "85mm f/1.8 medium close-up, slightly low angle")
+7. **Texture realism** — skin pores, fabric weave, surface materials
+8. **Cinematic reference** — film stock + color grade (e.g., "Kodak Portra 400, warm golden amber grade, subtle film grain")
+
+A prompt scoring below 6/8 reads as generic AI-stock and dies in the feed.
+
+### 4.6 Hyperrealistic anti-AI-look (mandatory micro-imperfections)
+
+Pull 1-2 specifics per prompt from these categories to prevent the "AI-perfect glossy plastic" look: **skin** (visible pores, subtle under-eye texture, micro-sweat), **hair** (stray hairs catching light), **fabric** (natural creases, slight wrinkles), **surfaces** (scuff marks, fingerprints on metal, dust), **composition** (slight asymmetry preferred), **light** (natural falloff, slight color fringing at edges, subtle lens vignetting).
+
+### 4.7 Mobile dead zones + technical specs
+
+- **Top 150px**: empty negative space — LinkedIn profile overlay sits here
+- **Bottom 200px**: empty except for the page-indicator band and (non-CTA) SWIPE indicator
+- **Left/right 75px**: breathing margins — no headline glyphs cross these
+
+Phrase to the model: `"leave the top 150px empty with textured background only — no text, no figures, no logos. Leave the bottom 200px similarly empty except for the centered page indicator and SWIPE (GESER) > indicator."`
+
+Fixed technical specs (mention in paragraph 5 of every prompt):
+
+- Aspect ratio: 1080×1350 portrait (4:5)
+- Default film stock: Kodak Portra 400
+- Color temperature: 3200-3500K (warm)
+- Color grade: warm golden amber
+- Image style: hyperrealistic
+
+### 4.8 Prompt body rendering rules (Nano Banana Pro literalism)
+
+Nano Banana Pro renders **every word in the prompt** as visible image content unless contextualized otherwise. Strict rules:
+
+- **Only IN-IMAGE text in ALL CAPS** — never write "MANDATORY: render the icon" (use lowercase: "render the icon")
+- **No raw percentages** — write "thirty percent opacity" not "30%"
+- **No raw filenames** — write "the provided brand logo reference image" not "creator-brand.png"
+- **No `//` separators** in HUD/data callouts
+- **Sizing via description** — "the largest possible font size that fills the width, extra bold weight" not "MASSIVE billboard-scale"
+- **Positioning lowercase** — "centered in the middle" not "CENTERED in middle"
+
+What MAY appear in ALL CAPS: the actual in-image text (headline quoted verbatim, subtitle quoted verbatim, "@alisadikinma", "SWIPE (GESER) >", "3/9", "$60B", etc).
+
+### 4.9 Required prompt structure (5-paragraph form)
+
+Each `image_prompt` MUST use paragraph breaks separating these sections — single-block monolith prompts get rejected:
+
+1. **Subject + expression + wardrobe + action**
+2. **Scene + environment + spatial layers** (foreground / middle / background)
+3. **Lens + lighting + film stock + atmosphere + texture** (cinematographer's spec sheet)
+4. **Text overlay block** — main headline (Indonesian, white) + accent keywords (golden) + subtitle (English, golden) + brand icon center thirty percent + @alisadikinma watermark center thirty percent + SWIPE (GESER) > below headline + page number top-left
+5. **Aspect ratio + constraints** — 1080×1350 portrait canvas, mobile dead zones, in-image text rendering, no URLs
+
+### 4.10 Zero URLs in slide images
+
+NEVER include any `https://` or `http://` string in `image_prompt`. The blog link belongs ONLY in the post's first comment (authored by `linkedin-convert`, not this skill). The CTA slide's `https://alisadikinma.com` is the ONE exception — it's the portfolio URL, NOT a blog link, and is rendered as part of the social block on the CTA slide only.
 
 The prompt should read like a cinematographer briefing a DOP, not like a bulleted spec sheet. 300-500 words of dense, readable prose per slide.
 

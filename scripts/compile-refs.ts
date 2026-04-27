@@ -51,8 +51,8 @@ const BUNDLES: BundleSpec[] = [
   },
   {
     outputFile: 'refs-linkedin-carousel.md',
-    purpose: 'Carousel Design (slide structure, typography, safe zones)',
-    sources: ['06-carousel-design.md'],
+    purpose: 'Carousel Design (slide structure, typography, safe zones) + Image Standards (visual hook, bilingual, branding chrome)',
+    sources: ['06-carousel-design.md', '07-carousel-image-standards.md'],
   },
 ];
 
