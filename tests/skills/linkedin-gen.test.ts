@@ -1,27 +1,24 @@
 /**
  * linkedin-gen.test.ts — Contract + golden fixture tests.
  *
- * Four test suites mirror the Phase B1/B2/B3 pattern:
- *   1. SKILL.md contract — frontmatter (4 triggers incl. linkedin-gen), required
- *      body sections (Step 1/2/3/4, deferred-to-phase-c branch, scope
- *      boundary), anti-slop restatement.
+ * v0.5.0 BREAKING: orchestrator no longer authors carousels inline.
+ * Carousel format short-circuits with status=route_to_carousel_gen and
+ * the backend dispatches /carousel-gen separately. /linkedin-carousel
+ * skill was deleted.
+ *
+ * Four test suites:
+ *   1. SKILL.md contract — frontmatter, required body sections, anti-slop.
  *   2. schema.ts contract — OrchestratorOutputSchema superRefine invariants:
  *        - status=complete + format=text + post=null → reject
  *        - status=complete + format=text + validation=null → reject
- *        - status=deferred_to_phase_c + format=text → reject
- *        - status=deferred_to_phase_c + post != null → reject
+ *        - status=route_to_carousel_gen + format=text → reject
+ *        - status=route_to_carousel_gen + non-null post/carousel/validation → reject
  *        - status=failed + missing error block → reject
  *        - valid complete text path → accept
- *        - valid deferred carousel path → accept
- *   3. Golden fixtures — hand-composed orchestrator outputs from existing B1 +
- *      B2 + B3 fixtures. Framework draft = complete text path; listicle draft =
- *      deferred carousel path.
- *   4. linkedin-writer agent file contract — plain markdown, no frontmatter,
- *      restates core rules inline (self-contained).
- *
- * Cross-skill integration test: compose expected-framework-draft in memory
- * from B1 brief + B2 post + B3 validation, assert deep-equal with on-disk
- * fixture.
+ *        - valid route_to_carousel_gen carousel envelope → accept
+ *   3. Golden fixtures — framework draft (complete text path) + listicle
+ *      draft (route_to_carousel_gen envelope).
+ *   4. linkedin-writer agent file contract.
  *
  * NO LLM inference in this suite. Tests run in ms, deterministically.
  */
@@ -36,7 +33,6 @@ import {
   BriefSchema,
   type Brief,
 } from '../../skills/linkedin-brief/schema.js';
-import { CarouselOutputSchema } from '../../skills/linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../../skills/linkedin-convert/schema.js';
 import {
   OrchestratorInputSchema,
@@ -130,9 +126,15 @@ describe('linkedin-gen SKILL.md contract', () => {
     expect(skill.body).toContain('linkedin-validate');
   });
 
-  it('body mentions the deferred-to-phase-c branch for carousel', async () => {
+  it('body mentions the route_to_carousel_gen branch for carousel format', async () => {
     const skill = await loadSkillMd('linkedin-gen');
-    expect(skill.body).toContain('deferred_to_phase_c');
+    expect(skill.body).toContain('route_to_carousel_gen');
+  });
+
+  it('body does NOT reference deleted /linkedin-carousel skill files as active', async () => {
+    const skill = await loadSkillMd('linkedin-gen');
+    // Schema file path must not appear (it would be a code reference)
+    expect(skill.body).not.toContain('linkedin-carousel/schema.ts');
   });
 
   it('body restates the no-publishing / no-scheduling scope boundary', async () => {
@@ -202,13 +204,25 @@ describe('linkedin-gen schema.ts contract', () => {
     linkedin_conversion_confidence: 0.92,
   };
 
-  it('OrchestratorStatusSchema accepts the 3 known statuses', () => {
+  it('OrchestratorStatusSchema accepts the 4 known statuses', () => {
     expect(OrchestratorStatusSchema.safeParse('complete').success).toBe(true);
+    expect(
+      OrchestratorStatusSchema.safeParse('route_to_carousel_gen').success,
+    ).toBe(true);
     expect(
       OrchestratorStatusSchema.safeParse('deferred_to_phase_c').success,
     ).toBe(true);
     expect(OrchestratorStatusSchema.safeParse('failed').success).toBe(true);
     expect(OrchestratorStatusSchema.safeParse('unknown').success).toBe(false);
+  });
+
+  it('OrchestratorErrorSchema does not allow deleted carousel step', () => {
+    expect(
+      OrchestratorErrorSchema.safeParse({
+        step: 'carousel' as unknown as 'brief',
+        message: 'long enough message',
+      }).success,
+    ).toBe(false);
   });
 
   it('OrchestratorErrorSchema requires step + message', () => {
@@ -283,15 +297,15 @@ describe('linkedin-gen schema.ts contract', () => {
     expect(result.success).toBe(true);
   });
 
-  it('OrchestratorOutputSchema accepts a valid deferred carousel path', () => {
+  it('OrchestratorOutputSchema accepts a valid route_to_carousel_gen envelope', () => {
     const output: OrchestratorOutput = {
-      status: 'deferred_to_phase_c',
+      status: 'route_to_carousel_gen',
       format: 'carousel',
       brief: carouselBrief,
       post: null,
       carousel: null,
       validation: null,
-      generated_at: '2026-04-23T09:00:00Z',
+      generated_at: '2026-04-28T09:00:00Z',
     };
     const result = OrchestratorOutputSchema.safeParse(output);
     if (!result.success) {
@@ -301,6 +315,37 @@ describe('linkedin-gen schema.ts contract', () => {
       throw new Error(`expected success but got: ${issues}`);
     }
     expect(result.success).toBe(true);
+  });
+
+  it('OrchestratorOutputSchema rejects route_to_carousel_gen + format=text', () => {
+    const bad = {
+      status: 'route_to_carousel_gen' as const,
+      format: 'text' as const,
+      brief: validBrief,
+      post: null,
+      carousel: null,
+      validation: null,
+    };
+    const result = OrchestratorOutputSchema.safeParse(bad);
+    expect(result.success).toBe(false);
+  });
+
+  it('OrchestratorOutputSchema rejects route_to_carousel_gen + non-null validation', async () => {
+    const validation = await loadJsonFixture(
+      'validate',
+      'expected-good-validation.json',
+      ValidationSchema,
+    );
+    const bad = {
+      status: 'route_to_carousel_gen' as const,
+      format: 'carousel' as const,
+      brief: carouselBrief,
+      post: null,
+      carousel: null,
+      validation,
+    };
+    const result = OrchestratorOutputSchema.safeParse(bad);
+    expect(result.success).toBe(false);
   });
 
   it('OrchestratorOutputSchema rejects status=complete + format=text + post=null', async () => {
@@ -364,22 +409,10 @@ describe('linkedin-gen schema.ts contract', () => {
     expect(result.success).toBe(true);
   });
 
-  it('OrchestratorOutputSchema rejects status=complete + format=carousel without non-null carousel (invariant 2)', () => {
-    const bad = {
-      status: 'complete' as const,
-      format: 'carousel' as const,
-      brief: carouselBrief,
-      post: null,
-      carousel: null,
-      validation: null,
-    };
-    const result = OrchestratorOutputSchema.safeParse(bad);
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const msgs = result.error.issues.map((i) => i.message).join('|');
-      expect(msgs).toMatch(/requires non-null carousel/);
-    }
-  });
+  // (Removed legacy "status=complete + format=carousel" test — v0.5.0
+  //  carousel format always uses route_to_carousel_gen status, never
+  //  complete. Backend's CarouselGenOutputAdapter assembles the real
+  //  slides[] downstream from the /carousel-gen engine output.)
 
   it('OrchestratorOutputSchema rejects deferred_to_phase_c + non-null post', async () => {
     const post = await loadJsonFixture(
@@ -457,7 +490,7 @@ describe('linkedin-gen schema.ts contract', () => {
     expect(result.success).toBe(false);
   });
 
-  it('OrchestratorOutputSchema rejects carousel != null (carousel slot always null in B5)', async () => {
+  it('OrchestratorOutputSchema rejects carousel != null on complete text path (invariant 1)', async () => {
     const post = await loadJsonFixture(
       'convert',
       'expected-framework.json',
@@ -473,7 +506,8 @@ describe('linkedin-gen schema.ts contract', () => {
       format: 'text' as const,
       brief: validBrief,
       post,
-      // carousel field set to anything non-null should fail z.null()
+      // carousel slot is permissive z.unknown().nullable() at the field
+      // level, but invariant 1 (text path) still requires it to be null.
       carousel: { slides: [] } as unknown as null,
       validation,
     };
@@ -602,7 +636,7 @@ describe('linkedin-gen golden fixtures — framework (text, complete)', () => {
   });
 });
 
-describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () => {
+describe('linkedin-gen golden fixtures — listicle (carousel, route_to_carousel_gen)', () => {
   it('expected-listicle-draft.json validates', async () => {
     const out = await loadJsonFixture(
       'gen',
@@ -612,13 +646,13 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
     expect(out).toBeDefined();
   });
 
-  it('expected-listicle-draft.json has status=complete (post-C2 carousel wired)', async () => {
+  it('expected-listicle-draft.json has status=route_to_carousel_gen (v0.5.0)', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
       OrchestratorOutputSchema,
     );
-    expect(out.status).toBe('complete');
+    expect(out.status).toBe('route_to_carousel_gen');
   });
 
   it('expected-listicle-draft.json has format=carousel', async () => {
@@ -630,36 +664,15 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
     expect(out.format).toBe('carousel');
   });
 
-  it('expected-listicle-draft.json has post=null (carousel path, not text)', async () => {
+  it('expected-listicle-draft.json has post/carousel/validation all null (route envelope)', async () => {
     const out = await loadJsonFixture(
       'gen',
       'expected-listicle-draft.json',
       OrchestratorOutputSchema,
     );
     expect(out.post).toBeNull();
-  });
-
-  it('expected-listicle-draft.json has non-null carousel with 9 slides', async () => {
-    const out = await loadJsonFixture(
-      'gen',
-      'expected-listicle-draft.json',
-      OrchestratorOutputSchema,
-    );
-    expect(out.carousel).not.toBeNull();
-    expect(out.carousel?.total_slides).toBe(9);
-    expect(out.carousel?.slides).toHaveLength(9);
-  });
-
-  it('expected-listicle-draft.json has non-null validation with depth_score >= 80', async () => {
-    const out = await loadJsonFixture(
-      'gen',
-      'expected-listicle-draft.json',
-      OrchestratorOutputSchema,
-    );
-    expect(out.validation).not.toBeNull();
-    expect(out.validation?.passed).toBe(true);
-    expect(out.validation?.depth_score).toBeGreaterThanOrEqual(80);
-    expect(out.validation?.format).toBe('carousel');
+    expect(out.carousel).toBeNull();
+    expect(out.validation).toBeNull();
   });
 
   it('expected-listicle-draft.json brief matches B1 listicle fixture', async () => {
@@ -674,20 +687,6 @@ describe('linkedin-gen golden fixtures — listicle (carousel, deferred)', () =>
       BriefSchema,
     );
     expect(genOut.brief).toEqual(briefFixture);
-  });
-
-  it('expected-listicle-draft.json carousel matches C2 listicle fixture (cross-skill composition)', async () => {
-    const genOut = await loadJsonFixture(
-      'gen',
-      'expected-listicle-draft.json',
-      OrchestratorOutputSchema,
-    );
-    const carouselFixture = await loadJsonFixture(
-      'carousel',
-      'expected-listicle.json',
-      CarouselOutputSchema,
-    );
-    expect(genOut.carousel).toEqual(carouselFixture);
   });
 });
 
@@ -750,16 +749,11 @@ describe('linkedin-gen cross-skill composition', () => {
     expect(onDisk).toEqual(composed);
   });
 
-  it('listicle draft = { brief (B1) + carousel (C2) + carousel-validation } deep-equal match', async () => {
+  it('listicle draft = { brief (B1) + null slots } route_to_carousel_gen envelope (v0.5.0)', async () => {
     const brief = await loadJsonFixture(
       'brief',
       'expected-listicle.json',
       BriefSchema,
-    );
-    const carousel = await loadJsonFixture(
-      'carousel',
-      'expected-listicle.json',
-      CarouselOutputSchema,
     );
 
     const raw = await readFile(
@@ -774,16 +768,13 @@ describe('linkedin-gen cross-skill composition', () => {
     );
     const onDisk = JSON.parse(raw) as OrchestratorOutput;
 
-    // Validation is carousel-format placeholder until C3 authors the
-    // canonical carousel-validation fixture; reuse the on-disk value so the
-    // composition deep-equal check still asserts every other slot.
     const composed = {
-      status: 'complete' as const,
+      status: 'route_to_carousel_gen' as const,
       format: 'carousel' as const,
       brief,
       post: null,
-      carousel,
-      validation: onDisk.validation,
+      carousel: null,
+      validation: null,
       generated_at: onDisk.generated_at,
     };
 

@@ -1,15 +1,19 @@
 /**
  * compile-refs.ts — Build per-skill compiled reference files for LinkedIn plugin.
  *
- * Reads raw playbook files from docs/rag/linkedin-playbook/ and produces 4 merged
+ * Reads raw playbook files from docs/rag/linkedin-playbook/ and produces 3 merged
  * bundles in references/compiled/ for injection via --append-system-prompt-file
  * (zero Read tool calls during skill execution).
  *
- * Mapping (from docs/plans/2026-04-23-plugin-architecture-full-auto.md Appendix A):
+ * Mapping (post-v0.5.0 — carousel design moved to /carousel-gen plugin):
  *   refs-linkedin-playbook.md  ← 01-main-playbook.md + 05-hashtags-timing-language.md
  *   refs-linkedin-templates.md ← 02-templates-hooks.md
  *   refs-linkedin-formats.md   ← 04-media-format-decision.md
- *   refs-linkedin-carousel.md  ← 06-carousel-design.md
+ *
+ * Carousel design specs (06-carousel-design.md + 07-carousel-image-standards.md)
+ * were retired in v0.5.0 — the universal /carousel-gen engine in the
+ * ai-image-carousel-prompt-gen plugin now owns carousel authoring, with its
+ * own compiled refs at refs-carousel-gen-pipeline.md.
  *
  * Usage:
  *   npx tsx scripts/compile-refs.ts
@@ -48,11 +52,6 @@ const BUNDLES: BundleSpec[] = [
     outputFile: 'refs-linkedin-formats.md',
     purpose: 'Format Decision (text vs carousel vs video matrix)',
     sources: ['04-media-format-decision.md'],
-  },
-  {
-    outputFile: 'refs-linkedin-carousel.md',
-    purpose: 'Carousel Design (slide structure, typography, safe zones) + Image Standards (visual hook, bilingual, branding chrome)',
-    sources: ['06-carousel-design.md', '07-carousel-image-standards.md'],
   },
 ];
 

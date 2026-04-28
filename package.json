@@ -1,7 +1,7 @@
 {
   "name": "linkedin-post-writer",
-  "version": "0.2.0",
-  "description": "Claude Code plugin that auto-converts blog posts from alisadikinma.com into algorithm-optimized LinkedIn posts (text or carousel) with Depth Score validation and MixPost auto-publish.",
+  "version": "0.5.0",
+  "description": "Claude Code plugin that auto-converts blog posts into algorithm-optimized LinkedIn posts. v0.5.0 BREAKING: text-only authoring; carousel format short-circuits to status=route_to_carousel_gen so the universal /carousel-gen engine (in ai-image-carousel-prompt-gen plugin) handles slide + image-prompt generation. Backend assembles the carousel via CarouselGenOutputAdapter.",
   "type": "module",
   "private": true,
   "license": "MIT",

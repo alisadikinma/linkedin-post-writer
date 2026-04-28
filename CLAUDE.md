@@ -1,18 +1,18 @@
 # LinkedIn Post Writer — Claude Project Instructions
 
-> **Status (2026-04-23):** Design + implementation plan complete + **Addendum 2 closes Phase 3 carousel + webhook Open Questions** + **Addendum 3 sharpens plugin scope to content-generation-only**. Phase A complete (plugin skeleton, 6 commits). Phase B1-B2 complete (linkedin-brief + linkedin-convert skills). Phase B3, B5, C2 remaining in-plugin.
+> **Status (2026-04-28, v0.5.0 — BREAKING):** Carousel authoring extracted to the universal `/carousel-gen` engine in the `ai-image-carousel-prompt-gen` plugin. `/linkedin-carousel` skill **DELETED**. `/linkedin-gen` orchestrator now produces text-format posts only; for carousel format it short-circuits at brief stage and emits `status: 'route_to_carousel_gen'`. The Portfolio_v2 backend dispatches `/carousel-gen` separately and assembles slides via `CarouselGenOutputAdapter`. Carousel design specs (06-carousel-design.md, 07-carousel-image-standards.md) retired from this plugin's `docs/rag/` — same content lives in `ai-image-carousel-prompt-gen`'s references.
 >
-> **Addendum 2 (2026-04-23 session 2)** — see design doc §12 — locks content/design decisions: slide composition = text-baked-in-AI-prompt (D9), PDF lib = TCPDF (D10 — **backend concern per Addendum 3**), Human Fingerprint = `creator_brand_logo` reuse (D11 ⚠️ flagged), `carousel_slides` JSON = flat slide array (D12 — **plugin concern, retained**), link-in-comment content = blog URL + 1-2 sentence context (D13 — **backend concern per Addendum 3**), Telegram webhook 2-layer sig + 2-step cancel (D14a/b — **backend concern per Addendum 3**). Retained plugin-side: D9, D11, D12.
+> **Why this change:** the legacy `/linkedin-carousel` path had recurring stability issues (image-prompt safety failures, font-hierarchy drift). The universal `/carousel-gen` engine is reusable across LinkedIn + IG + TikTok and has been stable in production for individual carousel generation. ADR: `~/.claude/gaspol-knowledge/design-decisions/adr-2026-04-28-carousel-engine-publisher-separation.md` covers the architecture rationale.
 >
-> **Addendum 3 (2026-04-23 session 3)** — see design doc §13 — **plugin = content generation only.** Scheduling, publishing, OAuth, cron, MixPost, Telegram notifications, admin UI = **Portfolio_v2 backend scope**, tracked separately. Plugin emits JSON via `claude -p "/linkedin-gen ..."`, admin panel handles everything downstream. Phase B4 (`linkedin-schedule` skill) DROPPED. Entire Phase D (backend wiring) OUT OF PLUGIN SCOPE. Incidental finding (for backend team): MixPost OSS only supports Mastodon/Meta/Twitter — no LinkedIn; backend must pick a different path (direct LinkedIn API / Postiz / etc).
+> **Migration path for backend:** drop the `LINKEDIN_USE_CAROUSEL_GEN_ENGINE` feature flag (flag-gate is gone — `/carousel-gen` is now the only path). Remove `LINKEDIN_GEN_REFS_CAROUSEL` env var (no longer used). Update `LinkedInGenerationService` to handle the new `status: 'route_to_carousel_gen'` envelope.
+>
+> **Addendum 3 (still applies)** — plugin = content generation only. Scheduling, publishing, OAuth, cron, Telegram notifications, admin UI = Portfolio_v2 backend scope. Plugin emits JSON via `claude -p "/linkedin-gen ..."`, admin panel handles everything downstream.
 
 ## Project Overview
 
-Claude Code plugin `linkedin-post-writer` that auto-converts every newly published blog post from `alisadikinma.com/blog` into an algorithm-optimized LinkedIn post (text or 7-10 slide carousel), validates against Depth Score ≥80, and auto-publishes via MixPost OSS — with a 15-minute Telegram cancel window as soft override and a kill-switch env var as hard brake.
+Claude Code plugin `linkedin-post-writer` that auto-converts every newly published blog post into an algorithm-optimized LinkedIn post. Post-v0.5.0 the plugin authors **text format only** (1100-1300 char native LinkedIn post with link-in-comment + Depth Score ≥80 validation). For **carousel format**, the orchestrator emits a routing envelope (`status: 'route_to_carousel_gen'`) and the Portfolio_v2 backend dispatches the universal `/carousel-gen` engine separately to produce slide JSON + image prompts.
 
-**Target state v1.0:** 6 skills + 1 agent + 4 compiled reference bundles, integrated with Portfolio_v2 Laravel backend via SSH-triggered Claude CLI (same pattern as sibling `article-content-writer`). Daily cron (03:00 WIB) scans blog for un-converted posts, generates drafts, validates, publishes — fully autonomous happy path.
-
-**Current state v0.1.0:** Only `.claude-plugin/plugin.json` + `docs/rag/linkedin-playbook/` (6 RAG files) + this CLAUDE.md + design doc + implementation plan exist. All skills, scripts, hooks, references (compiled), agent, backend wiring — pending.
+**Current state v0.5.0:** 4 skills (linkedin-gen orchestrator, linkedin-brief, linkedin-convert, linkedin-validate) + 1 agent (linkedin-writer) + 3 compiled reference bundles. Carousel authoring is OUT OF SCOPE — handled by `ai-image-carousel-prompt-gen` plugin's `/carousel-gen` engine.
 
 ## Critical Context Files (READ FIRST)
 
@@ -38,24 +38,24 @@ linkedin-post-writer/
 ├── tsconfig.json                      ❌ Phase A2
 ├── vitest.config.ts                   ❌ Phase A2
 │
-├── skills/
-│   ├── linkedin-gen/SKILL.md          ❌ Phase B5 — all-in-one orchestrator
-│   ├── linkedin-brief/SKILL.md        ❌ Phase B1 — blog → brief JSON (format decision + hook + pillar)
-│   ├── linkedin-convert/SKILL.md      ❌ Phase B2 — brief+blog → text post (1100-1300 char)
-│   ├── linkedin-carousel/SKILL.md     ❌ Phase C2 — brief+blog → 7-10 slide JSON
-│   ├── linkedin-validate/SKILL.md     ❌ Phase B3 + C3 — Depth Score 0-100 gate
-│   └── linkedin-schedule/SKILL.md     ❌ Phase B4 — POST to backend /schedule endpoint
+├── skills/                              v0.5.0 layout — 4 skills (linkedin-carousel deleted)
+│   ├── linkedin-gen/SKILL.md          ✅ Orchestrator. Text path: brief + convert + validate inline.
+│   │                                       Carousel path: brief only + status=route_to_carousel_gen.
+│   ├── linkedin-brief/SKILL.md        ✅ blog → brief JSON (format decision + hook + pillar)
+│   ├── linkedin-convert/SKILL.md      ✅ brief+blog → text post (1100-1300 char)
+│   └── linkedin-validate/SKILL.md     ✅ Depth Score 0-100 gate (text validation only —
+│                                          carousel structural validation lives in /carousel-gen schema)
 │
 ├── agents/
 │   └── linkedin-writer.md             ❌ Phase B5 — self-contained batch subagent
 │
-├── references/
-│   ├── raw/                           ❌ Phase A2 (symlinks → docs/rag/linkedin-playbook/*.md)
+├── references/                        v0.5.0 — 3 compiled bundles (carousel bundle retired)
+│   ├── raw/                           symlinks → docs/rag/linkedin-playbook/*.md
 │   └── compiled/
-│       ├── refs-linkedin-playbook.md  ❌ Phase A2 (01-main + 05-hashtags merged)
-│       ├── refs-linkedin-templates.md ❌ Phase A2 (02-templates-hooks)
-│       ├── refs-linkedin-formats.md   ❌ Phase A2 (04-media-format-decision)
-│       └── refs-linkedin-carousel.md  ❌ Phase A2 (06-carousel-design)
+│       ├── refs-linkedin-playbook.md  ✅ 01-main + 05-hashtags merged
+│       ├── refs-linkedin-templates.md ✅ 02-templates-hooks
+│       └── refs-linkedin-formats.md   ✅ 04-media-format-decision
+│       (refs-linkedin-carousel.md retired — same content in /carousel-gen plugin)
 │
 ├── hooks/
 │   └── session-start.sh               ❌ Phase A3 (mirror sibling)

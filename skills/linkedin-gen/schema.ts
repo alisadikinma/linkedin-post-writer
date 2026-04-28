@@ -2,35 +2,43 @@
  * schema.ts — Zod contract for the linkedin-gen orchestrator skill.
  *
  * This is the SINGLE SOURCE OF TRUTH for the end-to-end draft JSON shape the
- * orchestrator emits. It composes the B1 (brief), B2 (convert), and B3
- * (validate) contracts into a single blob the admin panel consumes.
+ * orchestrator emits. Post-v0.5.0 it composes B1 (brief), B2 (convert), and B3
+ * (validate) for the TEXT path only. Carousel format short-circuits to a
+ * `route_to_carousel_gen` envelope — the universal `/carousel-gen` engine
+ * (in `ai-image-carousel-prompt-gen` plugin) is the SOLE author of carousel
+ * slides + image prompts. The legacy `/linkedin-carousel` skill was deleted
+ * in v0.5.0.
  *
  * Scope boundary (Addendum 3):
  *   - The orchestrator generates content. It does NOT publish, schedule,
  *     notify, or call a backend. The admin panel owns downstream action.
- *   - Phase C2 wired carousel in: when brief routes to `carousel`, the
- *     orchestrator invokes `linkedin-carousel` and emits `status: 'complete'`
- *     with `carousel` populated (no longer deferred). The `deferred_to_phase_c`
- *     status is retained as a safety escape hatch for any future format that
- *     doesn't yet have a converter.
+ *   - For carousel format, the orchestrator authors the brief only and
+ *     emits `status: 'route_to_carousel_gen'`. The backend dispatches
+ *     `/carousel-gen` separately using the brief + blog URL, and assembles
+ *     the carousel slides via the CarouselGenOutputAdapter.
  *
  * Design sources:
  *   - docs/plans/2026-04-23-plugin-architecture-full-auto.md §13 Addendum 3
- *     (plugin scope boundary — content generation only)
- *   - docs/plans/2026-04-23-plugin-architecture-full-auto-plan.md §Phase B5 + C2
- *     (orchestrator contract + carousel wiring)
- *   - CLAUDE.md §Pipeline Flow (conceptual pipeline — scope-reduced here)
+ *   - docs/plans/2026-04-28-linkedin-carousel-engine-decoupling.md §Phase C
+ *     (carousel author moved to /carousel-gen, /linkedin-carousel deleted)
  */
 
 import { z } from 'zod';
 
 import { BriefSchema } from '../linkedin-brief/schema.js';
-import { CarouselOutputSchema } from '../linkedin-carousel/schema.js';
 import {
   BlogSourceSchema,
   ConvertOutputSchema,
 } from '../linkedin-convert/schema.js';
 import { ValidationSchema } from '../linkedin-validate/schema.js';
+
+/**
+ * Permissive carousel slot kept on the envelope for backward compatibility
+ * — old consumers may still inspect `envelope.carousel` even though v0.5.0
+ * orchestrator never produces it. Backend's CarouselGenOutputAdapter
+ * authors the real shape from /carousel-gen output downstream.
+ */
+const CarouselSlotSchema = z.unknown().nullable();
 
 /**
  * Orchestrator input — the admin panel hands us a `blog` shape only. The
@@ -53,15 +61,27 @@ export type OrchestratorInput = z.infer<typeof OrchestratorInputSchema>;
 /**
  * Orchestrator status — where the pipeline landed:
  *
- *   complete              — brief + convert + validate all ran (text path)
- *   deferred_to_phase_c   — brief routed to carousel; downstream steps skipped
- *                           until Phase C2 ships
- *   failed                — one of the sub-skill outputs violated its schema;
- *                           see `error` block for the offending step
+ *   complete                  — brief + convert + validate all ran (text path only post-v0.5.0)
+ *   route_to_carousel_gen     — brief routed to carousel; orchestrator emits
+ *                               brief only and short-circuits. Backend
+ *                               dispatches /carousel-gen using the brief +
+ *                               blog URL, runs CarouselGenOutputAdapter,
+ *                               and assembles the final carousel slides.
+ *                               No validation runs in the orchestrator for
+ *                               this path — /carousel-gen schema enforces
+ *                               structural quality, and Depth Score does
+ *                               not apply to image-prompt carousels.
+ *   deferred_to_phase_c       — retained as a generic escape hatch for any
+ *                               future format that doesn't yet have a
+ *                               converter or routing target
+ *   failed                    — one of the sub-skill outputs violated its
+ *                               schema; see `error` block for the offending
+ *                               step
  */
 export const OrchestratorStatusSchema = z.enum([
   'complete',
-  'deferred_to_phase_c', // retained as escape hatch for future formats without converters; carousel is no longer deferred
+  'route_to_carousel_gen',
+  'deferred_to_phase_c',
   'failed',
 ]);
 
@@ -74,7 +94,7 @@ export type OrchestratorStatus = z.infer<typeof OrchestratorStatusSchema>;
  * etc.) without parsing free-form strings.
  */
 export const OrchestratorErrorSchema = z.object({
-  step: z.enum(['brief', 'convert', 'carousel', 'validate']),
+  step: z.enum(['brief', 'convert', 'validate']),
   message: z.string().min(10),
   zod_issues: z.array(z.unknown()).optional(),
 });
@@ -86,13 +106,16 @@ export type OrchestratorError = z.infer<typeof OrchestratorErrorSchema>;
  *
  * Invariants (enforced via superRefine):
  *   1. status='complete' + format='text' ⇒ post non-null AND validation non-null AND carousel null
- *   2. status='complete' + format='carousel' ⇒ carousel non-null AND validation non-null AND post null (Phase C2 wiring)
- *   3. status='deferred_to_phase_c' ⇒ all three of post/carousel/validation are null
+ *   2. status='route_to_carousel_gen' + format='carousel' ⇒ brief non-null;
+ *      post/carousel/validation all null. Backend handles carousel author
+ *      via /carousel-gen + adapter from this point.
+ *   3. status='deferred_to_phase_c' ⇒ post/carousel/validation all null (escape hatch)
  *   4. status='failed' ⇒ error block present
  *
- * Post-C2 the carousel slot is a real CarouselOutputSchema (nullable). The
- * deferred_to_phase_c status is retained as a future escape hatch, not as
- * the default carousel path.
+ * Post-v0.5.0 the orchestrator no longer authors carousels. The carousel
+ * slot remains on the envelope as a permissive `unknown` for backward
+ * compatibility with old admin panel consumers; backend's
+ * CarouselGenOutputAdapter writes the real slides[] downstream.
  */
 export const OrchestratorOutputSchema = z
   .object({
@@ -100,7 +123,7 @@ export const OrchestratorOutputSchema = z
     format: z.enum(['text', 'carousel']),
     brief: BriefSchema,
     post: ConvertOutputSchema.nullable(),
-    carousel: CarouselOutputSchema.nullable(),
+    carousel: CarouselSlotSchema,
     validation: ValidationSchema.nullable(),
     error: OrchestratorErrorSchema.optional(),
     generated_at: z.string().optional(),
@@ -131,27 +154,35 @@ export const OrchestratorOutputSchema = z
       }
     }
 
-    // Invariant 2 — complete carousel path requires carousel + validation; post absent.
-    if (data.status === 'complete' && data.format === 'carousel') {
-      if (data.carousel === null) {
+    // Invariant 2 — carousel routing path: brief authored, everything else null.
+    // Backend dispatches /carousel-gen from this envelope.
+    if (data.status === 'route_to_carousel_gen') {
+      if (data.format !== 'carousel') {
         ctx.addIssue({
           code: 'custom',
-          message: 'status=complete + format=carousel requires non-null carousel',
-          path: ['carousel'],
-        });
-      }
-      if (data.validation === null) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'status=complete + format=carousel requires non-null validation',
-          path: ['validation'],
+          message: 'status=route_to_carousel_gen requires format=carousel',
+          path: ['format'],
         });
       }
       if (data.post !== null) {
         ctx.addIssue({
           code: 'custom',
-          message: 'status=complete + format=carousel requires post=null',
+          message: 'status=route_to_carousel_gen must have post=null',
           path: ['post'],
+        });
+      }
+      if (data.carousel !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=route_to_carousel_gen must have carousel=null',
+          path: ['carousel'],
+        });
+      }
+      if (data.validation !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'status=route_to_carousel_gen must have validation=null (validation lives in /carousel-gen schema)',
+          path: ['validation'],
         });
       }
     }

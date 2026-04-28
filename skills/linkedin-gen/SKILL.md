@@ -1,6 +1,6 @@
 ---
 name: linkedin-gen
-description: End-to-end LinkedIn post generator. Orchestrates linkedin-brief -> linkedin-convert (or linkedin-carousel) -> linkedin-validate as a single-generation pipeline that emits one draft JSON ready for admin panel consumption. Triggers on linkedin-gen, generate linkedin post, blog to linkedin, gen linkedin.
+description: End-to-end LinkedIn post generator. Orchestrates linkedin-brief -> linkedin-convert -> linkedin-validate for text format. For carousel format the orchestrator authors the brief only and short-circuits with status=route_to_carousel_gen — the backend dispatches the universal /carousel-gen engine separately. Triggers on linkedin-gen, generate linkedin post, blog to linkedin, gen linkedin.
 model: sonnet
 triggers: [linkedin-gen, generate linkedin post, blog to linkedin, gen linkedin]
 ---
@@ -9,21 +9,27 @@ triggers: [linkedin-gen, generate linkedin post, blog to linkedin, gen linkedin]
 
 ## Purpose
 
-Convert one blog post into a single `OrchestratorOutput` JSON blob (schema: `skills/linkedin-gen/schema.ts` → `OrchestratorOutputSchema`) in **one model generation**. That blob contains the brief (format decision + hook + pillar), the post (text OR carousel), the validation (Depth Score + failures + suggestions), and envelope metadata. No multi-turn back-and-forth, no chained subprocess calls, no sub-skill dispatch — one response, one JSON.
+Convert one blog post into a single `OrchestratorOutput` JSON blob (schema: `skills/linkedin-gen/schema.ts` → `OrchestratorOutputSchema`) in **one model generation**.
+
+**Text format** (1100-1300 char native LinkedIn post): the blob contains the brief, the post (`ConvertOutput`), the validation (`Depth Score`), and envelope metadata.
+
+**Carousel format**: the blob contains the brief only and emits `status: 'route_to_carousel_gen'`. The backend dispatches the universal `/carousel-gen` engine (in the `ai-image-carousel-prompt-gen` plugin) using the brief + blog URL, runs `CarouselGenOutputAdapter` to materialize slides + image prompts, and persists the carousel directly. No carousel work happens inside this skill post-v0.5.0 — the legacy `/linkedin-carousel` skill was deleted.
+
+No multi-turn back-and-forth, no chained subprocess calls, no sub-skill dispatch from the orchestrator side — one response, one JSON.
 
 Scope boundary per Addendum 3: you do NOT publish, you do NOT schedule, you do NOT notify, you do NOT call any backend. The admin panel consumes the JSON this skill emits and drives everything downstream from there.
 
 ## THIS IS A SINGLE-GENERATION SKILL
 
-Critical operational note. This skill runs under `claude -p "/linkedin-gen ..."` (non-interactive mode). You get ONE generation turn. You produce the brief, the post (or carousel), the validation, and the final envelope all in that one turn, assembled into a single JSON object emitted at the end of your response.
+Critical operational note. This skill runs under `claude -p "/linkedin-gen ..."` (non-interactive mode). You get ONE generation turn. For text format you produce the brief, the post, the validation, and the final envelope all in that one turn, assembled into a single JSON object emitted at the end of your response. For carousel format you produce the brief and a route-to-carousel-gen envelope only.
 
-Do NOT stop after producing the brief. Do NOT emit the brief as a standalone JSON and then say "now the next skill will run". There is no next skill that will run — the phases labelled Step 1 through Step 4 below are internal reasoning phases of your single response, not external skill invocations. The sibling skills `linkedin-brief`, `linkedin-convert`, `linkedin-carousel`, and `linkedin-validate` exist as standalone skills for targeted operator actions in the admin panel (e.g. "regenerate just the brief"), but when `/linkedin-gen` runs, you do the work of all four phases inline and emit exactly one JSON blob.
+Do NOT stop after producing the brief on the text path. Do NOT emit the brief as a standalone JSON and then say "now the next skill will run". There is no next skill that will run — the phases labelled Step 1 through Step 4 below are internal reasoning phases of your single response, not external skill invocations. The sibling skills `linkedin-brief`, `linkedin-convert`, and `linkedin-validate` exist as standalone skills for targeted operator actions in the admin panel (e.g. "regenerate just the brief"), but when `/linkedin-gen` runs in text mode, you do the work of all phases inline and emit exactly one JSON blob.
 
 Your response MUST end with the complete `OrchestratorOutput` JSON object. Anything short of that is a failure.
 
 ## Reference files
 
-Four compiled refs are injected via `--append-system-prompt-file` by the production invoker: `refs-linkedin-playbook.md` (algorithm mechanics + Depth Score formula + pillars + anti-slop list), `refs-linkedin-templates.md` (12 text hook formulas, CTA bank, structural templates), `refs-linkedin-formats.md` (text vs carousel decision matrix), and `refs-linkedin-carousel.md` (slide count, dead zones, cover hook frameworks, direct-answer slide specs). Consult them as needed while producing each phase inline.
+Three compiled refs are injected via `--append-system-prompt-file` by the production invoker: `refs-linkedin-playbook.md` (algorithm mechanics + Depth Score formula + pillars + anti-slop list), `refs-linkedin-templates.md` (12 text hook formulas, CTA bank, structural templates), and `refs-linkedin-formats.md` (text vs carousel decision matrix). The legacy `refs-linkedin-carousel.md` was retired in v0.5.0 — carousel design specs live in the `/carousel-gen` engine's compiled refs (`refs-carousel-gen-pipeline.md`), which the backend feeds separately.
 
 ## Input
 
@@ -58,7 +64,7 @@ Hold the brief in working memory. Do not emit it yet.
 
 If the blog is too short (<100 chars of content) or contains no argument worth surfacing, emit `status: 'failed'` with `error.step = 'brief'` in the final envelope at Step 4 and skip Steps 2-3.
 
-## Step 2 — Produce the post (inline phase, branched on brief.format)
+## Step 2 — Branch on brief.format
 
 ### Step 2a — `format === 'text'`
 
@@ -71,23 +77,29 @@ Produce the `ConvertOutput` fields that will go into `envelope.post`:
 - `paragraph_count`: count of `\n\n`-separated paragraphs in `post_text`.
 - `hook_used`: the first paragraph's text (evidence the hook was applied).
 
-`carousel` slot will be `null`.
+`carousel` slot will be `null`. Continue to Step 3 (validation).
 
-### Step 2b — `format === 'carousel'`
+### Step 2b — `format === 'carousel'` — SHORT-CIRCUIT
 
-Produce the `CarouselOutput` fields that will go into `envelope.carousel`:
+Do NOT produce any carousel content. Do NOT score Depth Score. The backend dispatches `/carousel-gen` (universal carousel engine in the `ai-image-carousel-prompt-gen` plugin) using the brief + blog URL, runs `CarouselGenOutputAdapter` to assemble the slides[] envelope, and persists everything directly. Validation runs inside the `/carousel-gen` schema (structural invariants on slide count, layout hints, bilingual fields, etc.) — Depth Score does not apply to image-prompt carousels.
 
-- `slides`: array of 7-10 slide objects. Each slide carries `slide_number` (1-indexed, gapless), `layout_hint` (`cover`/`human_fingerprint`/`body`/`direct_answer`/`cta`), `copy` (10-420 chars), `image_prompt` (300-2500 chars — MUST contain the slide's `copy` verbatim in quotes AND reference the mobile safe zones: 1080x1350 canvas, top 150px dead zone, bottom 200px dead zone, 75px margins, 24pt body minimum), `is_cover`, `is_cta`, optional `direct_answer_block` (150-600 chars on the one `direct_answer` slide).
-- Structural invariants: exactly one cover (slide 1, `is_cover: true`), exactly one CTA (last slide, `is_cta: true`), at least one `human_fingerprint` slide (usually 3-5), at least one `direct_answer` slide with non-empty `direct_answer_block`.
-- `total_slides`: must equal `slides.length`.
-- `hook_framework`: same as `brief.hook_framework`.
-- `structure`: literal `"build_in_public"`.
+Skip Step 3 and emit the envelope at Step 4 with:
 
-`post` slot will be `null`.
+```json
+{
+  "status": "route_to_carousel_gen",
+  "format": "carousel",
+  "brief": { ... from Step 1 ... },
+  "post": null,
+  "carousel": null,
+  "validation": null,
+  "generated_at": "<ISO 8601 timestamp>"
+}
+```
 
-## Step 3 — Score the Depth Score (inline phase)
+## Step 3 — Score the Depth Score (text only — skipped for carousel)
 
-Score the text post OR carousel produced in Step 2 against the rubric in `refs-linkedin-playbook.md` + `refs-linkedin-carousel.md`. Produce the `Validation` fields that will go into `envelope.validation`:
+Score the text post produced in Step 2a against the rubric in `refs-linkedin-playbook.md`. Produce the `Validation` fields that will go into `envelope.validation`:
 
 - `depth_score` (0-100, integer): start at 100, subtract deductions as rules trigger.
 - `passed`: MUST equal `(depth_score >= 80) AND (no failures with severity='critical')`. If your math disagrees with `passed`, you made an arithmetic error — recompute, do NOT patch `passed` to match.
@@ -96,27 +108,21 @@ Score the text post OR carousel produced in Step 2 against the rubric in `refs-l
 - `suggestions`: one actionable fix per critical/important failure (minor failures may skip).
 
 Critical hard-fail rules (each -20 to -30, trigger `severity: 'critical'`, block `passed: true` regardless of score):
-- `external_link_in_body` (text) / `carousel_external_link_in_slide` — any `https?://` inside `post_text` or slide `copy`/`direct_answer_block`. Links go in `link_comment` only.
+- `external_link_in_body` — any `https?://` inside `post_text`. Links go in `link_comment` only.
 - `ai_slop_phrase` — any of the 7 banned phrases listed in the Anti-slop section below, scanned case-insensitively.
 - `engagement_bait` — any of the 5 bait phrases listed in the Anti-slop section below.
-- `carousel_image_prompt_missing_copy_verbatim` — any carousel slide whose `image_prompt` does not contain the slide's `copy` as an exact substring (D9 text-baked-in rule).
-- `carousel_missing_cover` / `carousel_missing_cta` — wrong cover position or missing CTA.
 
 Important rules (-5 to -20, do NOT block `passed` on their own unless score drops below 80):
-- `hook_strength_missing` — cover/first-3-lines contain no digit, timeframe word, contrarian marker, or curiosity-gap signal.
+- `hook_strength_missing` — first-3-lines contain no digit, timeframe word, contrarian marker, or curiosity-gap signal.
 - `char_count_out_of_range` — text post outside 1100-1300.
 - `paragraph_rhythm_violation` — any paragraph with 3+ lines.
 - `missing_closing_question` — text post not ending with a 5+ word question.
-- `hashtag_count_out_of_range` / `hashtag_format_invalid` — text only.
-- `link_comment_missing_url` — text only.
-- `carousel_slide_count_out_of_range` — outside 5-10.
-- `carousel_missing_human_fingerprint` / `carousel_missing_direct_answer`.
-- `carousel_image_prompt_missing_dead_zone` — image_prompt missing any of the 5 safe-zone specs.
-- `carousel_cta_missing_question` — CTA slide copy missing a 5+ word question.
+- `hashtag_count_out_of_range` / `hashtag_format_invalid`.
+- `link_comment_missing_url`.
 
 Minor rules (-5): presentational nits.
 
-Bonus: `pull_quote_verbatim_bonus` (+5, text only) when `brief.pull_quote` appears verbatim inside `post_text`.
+Bonus: `pull_quote_verbatim_bonus` (+5) when `brief.pull_quote` appears verbatim inside `post_text`.
 
 ## Step 4 — Assemble and emit the envelope
 
@@ -136,16 +142,16 @@ Shape of the emission:
 }
 ```
 
-Or for carousel:
+Or for carousel (route to /carousel-gen):
 
 ```json
 {
-  "status": "complete",
+  "status": "route_to_carousel_gen",
   "format": "carousel",
   "brief": { ... from Step 1 ... },
   "post": null,
-  "carousel": { ... from Step 2b ... },
-  "validation": { ... from Step 3 ... },
+  "carousel": null,
+  "validation": null,
   "generated_at": "<ISO 8601 timestamp>"
 }
 ```
@@ -180,9 +186,9 @@ Authoritative shape: `skills/linkedin-gen/schema.ts` → `OrchestratorOutputSche
 Invariants (enforced by superRefine in the schema):
 
 - `status='complete'` + `format='text'` ⇒ `post` + `validation` non-null AND `carousel=null`
-- `status='complete'` + `format='carousel'` ⇒ `carousel` + `validation` non-null AND `post=null`
-- `status='deferred_to_phase_c'` ⇒ `post`/`carousel`/`validation` all null (retained as a generic escape hatch for future formats without converters; the carousel path is NOT deferred post-C2)
-- `status='failed'` ⇒ `error` block present (step from `'brief' | 'convert' | 'carousel' | 'validate'`, human-readable message)
+- `status='route_to_carousel_gen'` + `format='carousel'` ⇒ brief non-null AND `post`/`carousel`/`validation` all null. Backend dispatches `/carousel-gen` from this envelope.
+- `status='deferred_to_phase_c'` ⇒ `post`/`carousel`/`validation` all null (retained as a generic escape hatch for future formats without converters)
+- `status='failed'` ⇒ `error` block present (step from `'brief' | 'convert' | 'validate'`, human-readable message)
 
 The orchestrator NEVER retries with modified inputs to try to "fix" a low Depth Score. If scoring produces `passed: false, depth_score: 72`, surface that faithfully. The admin panel decides the next operator action (regenerate with feedback, manual edit, cancel).
 
@@ -205,4 +211,4 @@ Engagement-bait phrases (case-insensitive, any occurrence triggers `rule: 'engag
 - "Drop a 🔥"
 - "Smash that like button"
 
-These are lockstep with the individual schema guards in `linkedin-convert/schema.ts`, `linkedin-carousel/schema.ts`, and `linkedin-validate/schema.ts`. If you produce content that contains any of the above, your own Depth Score scoring in Step 3 MUST catch it and emit the failure — do not silently scrub the phrase, do not pretend the content is clean. Faithful self-scoring is the whole point of this skill owning the full pipeline.
+These are lockstep with the individual schema guards in `linkedin-convert/schema.ts` and `linkedin-validate/schema.ts`. If you produce content that contains any of the above, your own Depth Score scoring in Step 3 MUST catch it and emit the failure — do not silently scrub the phrase, do not pretend the content is clean. Faithful self-scoring is the whole point of this skill owning the full text pipeline.

@@ -15,7 +15,6 @@ const EXPECTED_OUTPUTS = [
   'refs-linkedin-playbook.md',
   'refs-linkedin-templates.md',
   'refs-linkedin-formats.md',
-  'refs-linkedin-carousel.md',
 ];
 
 describe('compileRefs', () => {
@@ -33,13 +32,18 @@ describe('compileRefs', () => {
     }
   });
 
-  it('produces all 4 expected output files', async () => {
+  it('produces all 3 expected output files (post-v0.5.0 — carousel bundle retired)', async () => {
     for (const name of EXPECTED_OUTPUTS) {
       const path = join(OUTPUT_DIR, name);
       expect(existsSync(path), `missing output file: ${name}`).toBe(true);
       const s = await stat(path);
       expect(s.size, `file too small: ${name}`).toBeGreaterThan(500);
     }
+  });
+
+  it('does NOT produce refs-linkedin-carousel.md (retired in v0.5.0)', async () => {
+    const path = join(OUTPUT_DIR, 'refs-linkedin-carousel.md');
+    expect(existsSync(path)).toBe(false);
   });
 
   it('refs-linkedin-playbook.md merges 01-main-playbook + 05-hashtags-timing-language', async () => {
@@ -93,18 +97,9 @@ describe('compileRefs', () => {
     expect(compiled).toMatch(/^# LinkedIn Generation Reference/);
   });
 
-  it('refs-linkedin-carousel.md contains 06-carousel-design content', async () => {
-    const compiled = await readFile(join(OUTPUT_DIR, 'refs-linkedin-carousel.md'), 'utf8');
-    const src = await readFile(join(INPUT_DIR, '06-carousel-design.md'), 'utf8');
-    const firstHeader = src.split('\n').find((l) => l.startsWith('# '));
-    if (firstHeader) {
-      expect(compiled).toContain(firstHeader);
-    }
-    // Carousel-specific markers
-    expect(compiled.toLowerCase()).toContain('carousel');
-    expect(compiled).toContain('## Reference: 06-carousel-design');
-    expect(compiled).toMatch(/^# LinkedIn Generation Reference/);
-  });
+  // refs-linkedin-carousel.md was retired in v0.5.0 — carousel design specs
+  // moved to the universal /carousel-gen engine plugin (refs-carousel-gen-pipeline.md).
+  // Test removed.
 
   it('creates outputDir when it does not exist', async () => {
     const throwaway = join(ROOT, 'tmp', 'test-compiled-ephemeral');

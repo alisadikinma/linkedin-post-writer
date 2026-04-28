@@ -26,8 +26,18 @@
 
 import { z } from 'zod';
 
-import { CarouselOutputSchema } from '../linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../linkedin-convert/schema.js';
+
+/**
+ * Permissive carousel post slot for ValidationInputSchema. v0.5.0 retired
+ * the inline /linkedin-carousel skill — carousel authoring lives in the
+ * universal /carousel-gen engine plugin, whose schema is not imported here
+ * (cross-plugin import would create a hard coupling). When validating a
+ * carousel-format post, callers pass the /carousel-gen output object as-is.
+ * The validate skill scores rules that are applicable to whatever shape it
+ * receives.
+ */
+const CarouselValidationPostSchema = z.unknown();
 
 /**
  * Severity triage. `critical` triggers a HARD FAIL — any single critical
@@ -73,8 +83,8 @@ export type ValidationSuggestion = z.infer<typeof ValidationSuggestionSchema>;
  *   - format='carousel' → post is a `CarouselOutput` (C2 contract)
  *
  * The text branch reuses ConvertOutputSchema verbatim; the carousel branch
- * reuses CarouselOutputSchema verbatim — so any upstream breakage to those
- * schemas is caught here at the contract layer, not silently at runtime.
+ * accepts any shape (post-v0.5.0) since the /carousel-gen engine in a
+ * separate plugin owns the carousel post schema.
  */
 export const ValidationInputSchema = z.discriminatedUnion('format', [
   z.object({
@@ -83,7 +93,7 @@ export const ValidationInputSchema = z.discriminatedUnion('format', [
   }),
   z.object({
     format: z.literal('carousel'),
-    post: CarouselOutputSchema,
+    post: CarouselValidationPostSchema,
   }),
 ]);
 

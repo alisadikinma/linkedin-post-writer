@@ -1,5 +1,5 @@
 {
-  "status": "complete",
+  "status": "route_to_carousel_gen",
   "format": "carousel",
   "brief": {
     "format": "carousel",
@@ -11,93 +11,7 @@
     "linkedin_conversion_confidence": 0.92
   },
   "post": null,
-  "carousel": {
-    "slides": [
-      {
-        "slide_number": 1,
-        "layout_hint": "cover",
-        "copy": "8 agent patterns behind 12 shipped client projects in 90 days",
-        "image_prompt": "Render a 1080x1350 portrait carousel cover slide on a deep navy #0a0f1e background with a subtle charcoal #121826 vertical gradient and a very soft film grain overlay that evokes a Dark Cinema mood. Leave the top 150 pixels of the canvas entirely as negative space — no text, no logos, no figures — only the textured navy plate, because the LinkedIn profile overlay will sit in that zone on mobile. Keep a 75 pixel margin on the left and right edges all the way down. Center the composition: render the exact headline \"8 agent patterns behind 12 shipped client projects in 90 days\" as large Space Grotesk Bold typography in high-contrast cream #f3f4f6, wrapping across three lines, with the numerals 8, 12 and 90 emphasized in warm ember #ff6b35 so the metrics pop against the navy plate. The glyph size for the headline should be roughly 110 pixels tall so the copy reads cleanly on a phone. Do not render this copy as an overlay sticker or post-processed caption — bake it directly into the image as the primary typography layer. Below the headline, add a thin ember underline accent and a small JetBrains Mono tagline reading \"AI Agents / 2026\" in cream at roughly 28 pixels tall. Leave the bottom 200 pixels of the canvas almost empty except for a small centered page indicator reading \"1/9\" in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge so it sits inside the safe band between the 75 pixel margin and the 200 pixel dead zone. Lighting should be low-key and cinematic with a subtle volumetric rim light glancing across the upper right third of the navy plate, adding depth without distracting from the headline. Keep the whole frame minimalist — no stock-photo figures, no icons in the margins, no decorative flourishes. The single job of this slide is to stop the scroll with a precise numeric promise that only resolves on the final slide.",
-        "is_cover": true,
-        "is_cta": false
-      },
-      {
-        "slide_number": 2,
-        "layout_hint": "body",
-        "copy": "Twelve projects in ninety days. Twelve different use cases. Under the hood I kept reaching for the same eight patterns. Not thirty. Eight.",
-        "image_prompt": "Render a 1080x1350 portrait slide on the same Dark Cinema navy #0a0f1e background with the same soft charcoal #121826 vertical gradient and a whisper of film grain, so the deck feels like a coherent Dark Cinema film reel. Leave the top 150 pixels of the canvas entirely empty — no text, no icons, no logos — that band is reserved for the LinkedIn profile overlay. Maintain a 75 pixel margin on the left and right edges throughout the composition. Bake the exact copy \"Twelve projects in ninety days. Twelve different use cases. Under the hood I kept reaching for the same eight patterns. Not thirty. Eight.\" as in-frame typography: render it in Inter at a glyph size roughly 46 pixels tall — that approximates the 24pt minimum body scale on a 1080 canvas — in high-contrast cream #f3f4f6, wrapping across four lines with generous leading. Emphasize the numerals twelve, ninety, eight, thirty and eight in warm ember #ff6b35 so the numeric spine of the statement reads at a glance. Do not render this copy as an overlay or sticker — treat it as the primary typography layer composed directly into the background plate. To the left of the copy block, render a thin ember vertical rule about 4 pixels wide spanning the height of the copy band, acting as a quiet magazine-style editorial indent. Keep the rest of the canvas empty and mood-lit; a subtle volumetric rim light rakes across the upper third of the plate. Leave the bottom 200 pixels empty except for a centered \"2/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, floating about 120 pixels above the bottom edge inside the safe band. No figures, no icons, no decorative clutter — the entire point of this slide is to set the stakes in a single cinematic beat of cream typography on navy.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 3,
-        "layout_hint": "body",
-        "copy": "Pattern 1 — Gatekeeper. A cheap fast model classifies and routes. The expensive model only reasons. Cuts sixty percent of Sonnet tokens on a typical workload.",
-        "image_prompt": "Render a 1080x1350 portrait slide consistent with the Dark Cinema deck: deep navy #0a0f1e base with subtle charcoal #121826 gradient and soft film grain. Keep the top 150 pixels empty as negative space so the LinkedIn profile overlay has clearance. Maintain a 75 pixel margin on the left and right. Place a small JetBrains Mono eyebrow label at the top of the safe band reading \"PATTERN 01 / 08\" in teal #2dd4bf at roughly 28 pixels tall, spaced with extra tracking to feel like a terminal callout. Beneath the eyebrow, bake the exact copy \"Pattern 1 — Gatekeeper. A cheap fast model classifies and routes. The expensive model only reasons. Cuts sixty percent of Sonnet tokens on a typical workload.\" as the primary typography layer: Inter at a glyph size roughly 46 pixels tall, high-contrast cream #f3f4f6, wrapping across four or five lines with generous leading. Render the phrase \"sixty percent\" in warm ember #ff6b35 so the metric reads at a glance. Do not overlay this text in post — render it in-frame as the main composition. Below the copy, render a compact schematic diagram in JetBrains Mono style: three small rounded rectangles labelled INPUT, HAIKU ROUTER, and SONNET, connected by thin teal lines, sitting on the navy plate like a terminal wireframe. Keep the diagram small and subordinate to the typography. Lighting is low-key, a subtle volumetric rim light grazes the right edge. Leave the bottom 200 pixels empty except for a centered \"3/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 4,
-        "layout_hint": "human_fingerprint",
-        "copy": "I saved three client relationships by showing the Scribe trace. Not \"the AI hallucinated.\" The actual decision log. Every agent should write down what it did — structured, stored, readable.",
-        "image_prompt": "Render a 1080x1350 portrait human-fingerprint slide grounded in the Dark Cinema palette: deep navy #0a0f1e background with a subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain overlay. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. Use the creator_brand_logo brand asset as the hero figure, placed centered-left in the composition at roughly 40 percent canvas height — treat the logo as the hand-written personal signature of the author, surrounded by a soft circular volumetric rim light in warm ember #ff6b35 that backlights the asset against the navy plate, giving it presence without over-embellishment. To the right of the logo, occupying the right 55 percent of the frame, bake the exact copy — I saved three client relationships by showing the Scribe trace. Not \"the AI hallucinated.\" The actual decision log. Every agent should write down what it did — structured, stored, readable. — as the primary typography layer in Space Grotesk Regular at a glyph size roughly 44 pixels tall, high-contrast cream #f3f4f6, wrapping tightly with generous leading so the paragraph reads like a handwritten war-room note. Emphasize the phrase three client relationships in warm ember #ff6b35. The phrase the AI hallucinated should be rendered in subtle italic cream to signal it is the sloppy narrative the author is rejecting. Do not render this copy as an overlay — bake it into the image as typography composed directly on the navy plate alongside the creator_brand_logo figure. Leave the bottom 200 pixels empty except for a centered 4/9 page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band. The mood should feel personal, vulnerable, field-note rather than corporate — this is the authenticity slide the algorithm rewards.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 5,
-        "layout_hint": "body",
-        "copy": "Pattern 3 — Supervisor. When one agent spawns another, the parent decides what the child is allowed to do. If the child writes to an unauthorized database, the supervisor blocks it.",
-        "image_prompt": "Render a 1080x1350 portrait slide inside the Dark Cinema deck: deep navy #0a0f1e background, subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain overlay. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. At the top of the safe band render a JetBrains Mono eyebrow label reading \"PATTERN 03 / 08\" in teal #2dd4bf at roughly 28 pixels tall with extra tracking. Below the eyebrow, bake the exact copy \"Pattern 3 — Supervisor. When one agent spawns another, the parent decides what the child is allowed to do. If the child writes to an unauthorized database, the supervisor blocks it.\" as the primary typography layer in Inter at a glyph size roughly 46 pixels tall, high-contrast cream #f3f4f6, wrapping across five lines with generous leading. Emphasize the word \"blocks\" in warm ember #ff6b35 so the enforcement verb carries weight. Do not overlay this copy in post — bake it directly into the image as the main composition layer. Below the copy, render a compact parent-child tree diagram in JetBrains Mono style: a larger rounded rectangle labelled PARENT at the top, with two thin teal lines descending to two smaller rectangles labelled CHILD A and CHILD B, and a single ember-colored stop-glyph intercepting the line from CHILD A to a dashed outline rectangle labelled DB, signalling the supervisor block. Keep the diagram subordinate to the typography — a wireframe glint rather than a centerpiece. A subtle volumetric rim light rakes across the upper right corner. Leave the bottom 200 pixels empty except for a centered \"5/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 6,
-        "layout_hint": "body",
-        "copy": "Pattern 4 — Circuit Breaker. Three attempts, ten seconds each, then abort and tell a human. This is the pattern that would have saved one client four thousand dollars in overnight API fees.",
-        "image_prompt": "Render a 1080x1350 portrait slide consistent with the Dark Cinema deck: deep navy #0a0f1e background, subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. At the top of the safe band render a JetBrains Mono eyebrow label reading \"PATTERN 04 / 08\" in teal #2dd4bf at roughly 28 pixels tall with extra tracking. Below the eyebrow, bake the exact copy \"Pattern 4 — Circuit Breaker. Three attempts, ten seconds each, then abort and tell a human. This is the pattern that would have saved one client four thousand dollars in overnight API fees.\" as the primary typography layer in Inter at a glyph size roughly 46 pixels tall, high-contrast cream #f3f4f6, wrapping across five lines with generous leading. Emphasize the phrase \"four thousand dollars\" in warm ember #ff6b35 so the cost lands viscerally. Do not render this copy as an overlay sticker — bake it directly into the image as the primary composition layer. To the right of the copy band, render a small circuit-breaker wireframe in JetBrains Mono style: a looping arrow representing retry attempts, interrupted by a bold ember cross-bar labelled ABORT, with a small dashed line leading to an icon labelled HUMAN. The diagram should feel like a terminal callout, subordinate to the typography. A subtle volumetric rim light glances across the upper left corner adding cinematic depth. Leave the bottom 200 pixels empty except for a centered \"6/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 7,
-        "layout_hint": "body",
-        "copy": "Patterns 5 through 7 — Receipt, Handoff, Rehearsal. Every task emits a verifiable outcome. Every out-of-depth moment escalates explicitly. Every change replays against a hundred fixture conversations before it ships.",
-        "image_prompt": "Render a 1080x1350 portrait slide inside the Dark Cinema deck: deep navy #0a0f1e background, subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. At the top of the safe band render a JetBrains Mono eyebrow label reading \"PATTERNS 05 - 07 / 08\" in teal #2dd4bf at roughly 28 pixels tall with extra tracking. Below the eyebrow, bake the exact copy \"Patterns 5 through 7 — Receipt, Handoff, Rehearsal. Every task emits a verifiable outcome. Every out-of-depth moment escalates explicitly. Every change replays against a hundred fixture conversations before it ships.\" as the primary typography layer in Inter at a glyph size roughly 44 pixels tall, high-contrast cream #f3f4f6, wrapping across five or six lines with generous leading. Emphasize the three pattern names Receipt, Handoff, Rehearsal in warm ember #ff6b35 so the triad reads at a glance. Do not overlay this copy in post — bake it directly into the image as the main composition layer. Below the copy, render three compact wireframe cards side by side in JetBrains Mono style, each one labelled Receipt, Handoff, Rehearsal, containing a small schematic glyph — a receipt icon, an escalation arrow, and a fixture-replay loop respectively — outlined in teal on the navy plate. Keep the cards small and subordinate to the typography. A subtle volumetric rim light rakes across the upper right corner for depth. Leave the bottom 200 pixels empty except for a centered \"7/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band.",
-        "is_cover": false,
-        "is_cta": false
-      },
-      {
-        "slide_number": 8,
-        "layout_hint": "direct_answer",
-        "copy": "The eight production patterns, in order: Gatekeeper, Scribe, Supervisor, Circuit Breaker, Receipt, Handoff, Rehearsal, Graveyard. Skip any one and production breaks in a predictable way.",
-        "image_prompt": "Render a 1080x1350 portrait Direct Answer slide inside the Dark Cinema deck: deep navy #0a0f1e background, subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. At the top of the safe band render a JetBrains Mono eyebrow label reading \"DIRECT ANSWER\" in teal #2dd4bf at roughly 30 pixels tall with extra tracking, underlined by a thin ember rule. Below the eyebrow, bake the exact copy \"The eight production patterns, in order: Gatekeeper, Scribe, Supervisor, Circuit Breaker, Receipt, Handoff, Rehearsal, Graveyard. Skip any one and production breaks in a predictable way.\" as the primary typography layer in Space Grotesk Regular at a glyph size roughly 44 pixels tall, high-contrast cream #f3f4f6, wrapping across five or six lines with generous leading. Render each of the eight pattern names in warm ember #ff6b35 so the enumerated spine is instantly scannable for an AI search scraper crawling the slide. Do not overlay this copy in post — bake it directly into the image as the main composition layer. Below the copy, render a small horizontal progress ladder of eight numbered ember dots on a thin cream baseline, labelling the sequence 1 through 8 in JetBrains Mono at roughly 22 pixels tall. The ladder should feel like a quiet index rather than a decorative flourish. A subtle volumetric rim light rakes across the upper third of the plate for depth. Leave the bottom 200 pixels empty except for a centered \"8/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band. The whole slide is engineered to be standalone-readable: a reader who sees only this frame should walk away with the eight-pattern ground truth.",
-        "is_cover": false,
-        "is_cta": false,
-        "direct_answer_block": "Eight production patterns repeat across every AI agent stack I shipped in Q1 2026: Gatekeeper routes requests with a cheap fast model, Scribe writes structured decision traces, Supervisor blocks unauthorized child-agent actions, Circuit Breaker aborts runaway API loops after three attempts, Receipt emits verifiable task outcomes, Handoff escalates explicitly to humans, Rehearsal replays fixture conversations before any deployment, and Graveyard retires dead agents on purpose. Skip any one of the eight and production breaks in a predictable, expensive failure mode."
-      },
-      {
-        "slide_number": 9,
-        "layout_hint": "cta",
-        "copy": "Which of these eight patterns is the one breaking first in your stack right now? Tell me in the comments — I read every reply. Blog link in comments 👇",
-        "image_prompt": "Render a 1080x1350 portrait CTA slide closing the Dark Cinema deck: deep navy #0a0f1e background, subtle charcoal #121826 gradient, low-key cinematic lighting, soft film grain. Leave the top 150 pixels as empty negative space for the LinkedIn profile overlay. Maintain a 75 pixel left and right margin. At the top of the safe band render a JetBrains Mono eyebrow label reading \"YOUR TURN\" in teal #2dd4bf at roughly 30 pixels tall with extra tracking, underlined by a thin ember rule. Below the eyebrow, bake the exact copy \"Which of these eight patterns is the one breaking first in your stack right now? Tell me in the comments — I read every reply. Blog link in comments 👇\" as the primary typography layer in Space Grotesk Bold at a glyph size roughly 48 pixels tall, high-contrast cream #f3f4f6, wrapping across four or five lines with generous leading. Emphasize the word \"breaking\" in warm ember #ff6b35 so the pain point lands. Render the question mark slightly oversized to act as a visual comment-prompt cue. Do not render this copy as an overlay sticker — bake it directly into the image as the main composition layer. Below the copy, render a soft ember arrow glyph pointing toward a stylized comment-bubble icon in outlined cream with a tiny ember dot inside, sitting centered in the lower third of the safe band. Below that, render a small JetBrains Mono line reading \"alisadikinma.com — follow for weekly field notes\" in subdued cream at roughly 24 pixels tall. Leave the bottom 200 pixels empty except for a centered \"9/9\" page indicator in JetBrains Mono at roughly 30 pixels tall, positioned about 120 pixels above the bottom edge inside the safe band. A subtle volumetric rim light rakes across the upper right corner adding cinematic closure to the deck.",
-        "is_cover": false,
-        "is_cta": true
-      }
-    ],
-    "total_slides": 9,
-    "hook_framework": "AIDA",
-    "structure": "build_in_public"
-  },
-  "validation": {
-    "depth_score": 92,
-    "passed": true,
-    "format": "carousel",
-    "failures": [],
-    "suggestions": [],
-    "computed_at": "2026-04-23T14:30:00Z"
-  },
-  "generated_at": "2026-04-23T14:30:00Z"
+  "carousel": null,
+  "validation": null,
+  "generated_at": "2026-04-28T12:00:00Z"
 }

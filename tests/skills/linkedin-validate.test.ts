@@ -22,7 +22,6 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
 
-import { CarouselOutputSchema } from '../../skills/linkedin-carousel/schema.js';
 import { ConvertOutputSchema } from '../../skills/linkedin-convert/schema.js';
 import {
   ValidationInputSchema,
@@ -349,33 +348,14 @@ describe('linkedin-validate schema.ts contract', () => {
     expect(result.success).toBe(false);
   });
 
-  it('ValidationInputSchema format=carousel branch now requires real CarouselOutputSchema shape (post-C3, tightened from B3 placeholder)', () => {
-    // B3 accepted { slides: [] } as a loose placeholder. C3 tightened this
-    // branch to the real CarouselOutputSchema — a 0-slide carousel with no
-    // cover/CTA/total_slides must now be rejected.
+  it('ValidationInputSchema format=carousel branch accepts any post shape (post-v0.5.0 — /carousel-gen owns its own schema)', () => {
+    // v0.5.0 retired /linkedin-carousel; the carousel branch now uses
+    // z.unknown() so the validate skill can score whatever shape the
+    // /carousel-gen engine produces.
     const result = ValidationInputSchema.safeParse({
       format: 'carousel',
-      post: { slides: [] },
+      post: { slides: [], anything: 'goes' },
     });
-    expect(result.success).toBe(false);
-  });
-
-  it('ValidationInputSchema format=carousel branch accepts a schema-valid CarouselOutput', async () => {
-    const carousel = await loadJsonFixture(
-      'carousel',
-      'expected-listicle.json',
-      CarouselOutputSchema,
-    );
-    const result = ValidationInputSchema.safeParse({
-      format: 'carousel',
-      post: carousel,
-    });
-    if (!result.success) {
-      const issues = result.error.issues
-        .map((i) => `${i.path.join('.')}: ${i.message}`)
-        .join('; ');
-      throw new Error(`expected success but got: ${issues}`);
-    }
     expect(result.success).toBe(true);
   });
 });
@@ -629,22 +609,15 @@ describe('linkedin-validate golden fixtures — good carousel', () => {
     expect(input.format).toBe('carousel');
   });
 
-  it('good carousel input.post passes CarouselOutputSchema', async () => {
+  it('good carousel input.post is non-null and structurally complete', async () => {
     const input = await loadJsonFixture(
       'validate',
       'input-good-carousel.json',
       ValidationInputSchema,
     );
-    // discriminated union narrows by format
     if (input.format !== 'carousel') throw new Error('expected carousel format');
-    const result = CarouselOutputSchema.safeParse(input.post);
-    if (!result.success) {
-      const issues = result.error.issues
-        .map((i) => `${i.path.join('.')}: ${i.message}`)
-        .join('; ');
-      throw new Error(`good carousel should pass CarouselOutputSchema: ${issues}`);
-    }
-    expect(result.success).toBe(true);
+    expect(input.post).toBeDefined();
+    expect(input.post).not.toBeNull();
   });
 
   it('expected-good-carousel-validation.json passes ValidationSchema', async () => {
