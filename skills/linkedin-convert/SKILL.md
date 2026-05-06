@@ -7,6 +7,14 @@ triggers: [convert, linkedin convert, text post, write linkedin post]
 
 # linkedin-convert — Blog + Brief to LinkedIn Text Post
 
+## Authoring Language: ENGLISH (v0.6.0+)
+
+**HARD RULE**: every `post_text` field MUST be authored in English — regardless of the source blog's primary language. The backend SSH bridge (Portfolio_v2's `LinkedInGenerationService::buildBlogPayload`, May 6 2026) feeds this skill the EN translation of the source blog when available, falling back to ID only when no EN translation exists. The target audience is global (US founders + EU + APAC + ID-fluent devs), and per `refs-linkedin-playbook.md` §05 line 177 `primary_language = "en"` for algorithmic distribution reasons (LinkedIn routes ID-language posts predominantly to the Indonesian market only).
+
+Do not mix Indonesian sentences into the body — Indonesian *terms* used as cultural shorthand (e.g. "Indonesian indie hacker community", "WIB timing") are fine, but grammar + connective tissue stays English.
+
+Set `caption_language: 'en'` in the orchestrator output envelope (see `linkedin-gen/schema.ts`) for backend telemetry.
+
 ## Purpose
 
 Transform a finalized `Brief` (from `linkedin-brief`) plus the source blog into a native LinkedIn text post that is engineered to clear a Depth Score ≥80 in the validator downstream. The output is pure text (no images, no external links in the body) sized to the 1100-1300-character dwell-time sweet spot, with a first-comment payload carrying the blog URL. No carousel slides, no images, no video — that is the `linkedin-carousel` skill's job. This skill owns text-format posts only.

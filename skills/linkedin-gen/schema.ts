@@ -127,6 +127,16 @@ export const OrchestratorOutputSchema = z
     validation: ValidationSchema.nullable(),
     error: OrchestratorErrorSchema.optional(),
     generated_at: z.string().optional(),
+    /**
+     * Authoring language of the produced caption. Optional — backend has
+     * its own default (English). Emitted by v0.6.0+ orchestrator for
+     * telemetry/audit so the admin panel can surface "this draft was
+     * authored in EN" without parsing post_text. Carousel format always
+     * routes through /carousel-gen which outputs bilingual slides; the
+     * accompanying LinkedIn caption (assembled by backend buildCarouselCaption)
+     * remains English-only per the May 6 2026 scope decision.
+     */
+    caption_language: z.enum(['en', 'id']).optional(),
   })
   .superRefine((data, ctx) => {
     // Invariant 1 — complete text path requires post + validation; carousel absent.
