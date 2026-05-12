@@ -266,6 +266,64 @@ describe('linkedin-gen schema.ts contract', () => {
     expect(OrchestratorInputSchema.safeParse({}).success).toBe(false);
   });
 
+  it('OrchestratorInputSchema (v0.7.0+) accepts optional format_preference="carousel"', () => {
+    const input = {
+      blog: {
+        url: 'https://alisadikinma.com/blog/anything',
+        title: 'Anything goes',
+        content:
+          'This is a real blog post that is definitely longer than one hundred characters so the min-length gate is satisfied. It goes on.',
+      },
+      format_preference: 'carousel' as const,
+    };
+    const result = OrchestratorInputSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.format_preference).toBe('carousel');
+    }
+  });
+
+  it('OrchestratorInputSchema (v0.7.0+) accepts format_preference="text"', () => {
+    const result = OrchestratorInputSchema.safeParse({
+      blog: {
+        url: 'https://alisadikinma.com/blog/anything',
+        title: 'Anything goes',
+        content:
+          'This is a real blog post that is definitely longer than one hundred characters so the min-length gate is satisfied. It goes on.',
+      },
+      format_preference: 'text',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('OrchestratorInputSchema rejects unknown format_preference values', () => {
+    const result = OrchestratorInputSchema.safeParse({
+      blog: {
+        url: 'https://alisadikinma.com/blog/anything',
+        title: 'Anything goes',
+        content:
+          'This is a real blog post that is definitely longer than one hundred characters so the min-length gate is satisfied. It goes on.',
+      },
+      format_preference: 'video',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('OrchestratorInputSchema preserves v0.6.x backward compat (format_preference absent)', () => {
+    const result = OrchestratorInputSchema.safeParse({
+      blog: {
+        url: 'https://alisadikinma.com/blog/anything',
+        title: 'Anything goes',
+        content:
+          'This is a real blog post that is definitely longer than one hundred characters so the min-length gate is satisfied. It goes on.',
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.format_preference).toBeUndefined();
+    }
+  });
+
   it('OrchestratorOutputSchema accepts a valid complete text path', async () => {
     const post = await loadJsonFixture(
       'convert',

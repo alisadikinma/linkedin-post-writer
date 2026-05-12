@@ -41,17 +41,22 @@ The orchestrator accepts `OrchestratorInputSchema` (see `schema.ts`):
     "url": "https://alisadikinma.com/blog/<slug>",
     "title": "<blog title>",
     "content": "<raw markdown body, >=100 chars>"
-  }
+  },
+  "format_preference": "carousel"
 }
 ```
 
 The production bridge (cron → SSH → Claude CLI) is responsible for scraping the blog URL into this shape before handing it over. For interactive debugging, an operator may paste the blog inline.
 
+**`format_preference` (v0.7.0+, optional)** — when present (`'text'` or `'carousel'`), the Step 1 format-decision heuristic is BYPASSED and the brief uses this value verbatim. Absent or null falls back to auto-detect (legacy v0.6.x behavior). The backend's format-mix governor passes this when it wants to bias dispatch toward carousel for cross-post fan-out (IG/TT/Threads need carousel input).
+
 ## Step 1 — Decide the brief (inline phase)
+
+**Format override gate (v0.7.0+):** If `input.format_preference` is present (`'text'` or `'carousel'`), set `brief.format = input.format_preference` and SKIP the decision-matrix heuristic in the next bullet. Continue with hook + pillar + pull_quote + angle + title_draft selection normally. This is how the backend's format-mix governor biases dispatch — operator/governor knows ratios across the broader pipeline that the plugin cannot see.
 
 Analyze the blog. Produce the `Brief` fields that will go into `envelope.brief`:
 
-- `format`: `"text"` (short, opinionated, 1100-1300 chars) OR `"carousel"` (7-10 slides, listicle / framework / case study density). Use `refs-linkedin-formats.md` decision matrix — listicles with 5+ items and case studies with 3+ proof beats lean carousel; single-argument takes and narrative bits lean text.
+- `format`: `"text"` (short, opinionated, 1100-1300 chars) OR `"carousel"` (7-10 slides, listicle / framework / case study density). Use `refs-linkedin-formats.md` decision matrix — listicles with 5+ items and case studies with 3+ proof beats lean carousel; single-argument takes and narrative bits lean text. **Skip this heuristic when `input.format_preference` was set above.**
 - `hook_id` (only when `format='text'`) — one of the 12 text hook formulas in `refs-linkedin-templates.md` §1 (`pas`, `aida`, `contrarian`, `pattern_interrupt`, `loss_aversion`, `curiosity_gap`, `specific_number`, `bold_claim`, `story_opener`, `question`, `stat_drop`, `before_after`).
 - `hook_framework` (only when `format='carousel'`) — one of the 5 carousel cover-hook frameworks (`PAS`, `AIDA`, `before_after`, `loss_aversion`, `contrarian`).
 - `pillar`: one of `ai_generalist`, `ai_solopreneur`, `vibe_coding`, `ai_agents`. Off-pillar posts get throttled by LinkedIn's Knowledge Graph.

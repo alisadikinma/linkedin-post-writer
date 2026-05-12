@@ -52,8 +52,23 @@ const CarouselSlotSchema = z.unknown().nullable();
  * scraping the blog URL into `{ url, title, content }` before handing it to
  * the orchestrator.
  */
+/**
+ * Optional `format_preference` (v0.7.0+):
+ *
+ * When set, the orchestrator's Step 1 format decision is OVERRIDDEN and
+ * the brief uses this value verbatim. The format-decision heuristic
+ * (H2 count + listicle signal) is bypassed. Plugin v0.6.x ignored this
+ * field; v0.7.0+ honors it. Unknown / null / absent values fall back
+ * to auto-detect (the legacy v0.6.x behavior).
+ *
+ * Use case: backend's LinkedInFormatMixGovernor measures recent
+ * carousel-to-text ratio across published drafts; when ratio drifts
+ * below target (default 0.8), it passes `format_preference='carousel'`
+ * to bias the next dispatch.
+ */
 export const OrchestratorInputSchema = z.object({
   blog: BlogSourceSchema,
+  format_preference: z.enum(['text', 'carousel']).optional(),
 });
 
 export type OrchestratorInput = z.infer<typeof OrchestratorInputSchema>;

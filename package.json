@@ -1,7 +1,7 @@
 {
   "name": "linkedin-post-writer",
-  "version": "0.6.0",
-  "description": "Claude Code plugin that auto-converts blog posts into algorithm-optimized LinkedIn posts. v0.6.0: explicit English-only authoring directive for post_text + optional caption_language envelope flag for backend telemetry. v0.5.0 BREAKING: text-only authoring; carousel format short-circuits to status=route_to_carousel_gen so the universal /carousel-gen engine (in ai-image-carousel-prompt-gen plugin) handles slide + image-prompt generation. Backend assembles the carousel via CarouselGenOutputAdapter.",
+  "version": "0.7.0",
+  "description": "Claude Code plugin that auto-converts blog posts into algorithm-optimized LinkedIn posts. v0.7.0: orchestrator honors optional input.format_preference ('text'|'carousel') — overrides Step 1 format heuristic so the backend's format-mix governor can bias dispatch (carousel target ratio 0.8 for IG/TT/Threads fan-out). v0.6.0: explicit English-only authoring directive for post_text + optional caption_language envelope flag for backend telemetry. v0.5.0 BREAKING: text-only authoring; carousel format short-circuits to status=route_to_carousel_gen so the universal /carousel-gen engine (in ai-image-carousel-prompt-gen plugin) handles slide + image-prompt generation. Backend assembles the carousel via CarouselGenOutputAdapter.",
   "type": "module",
   "private": true,
   "license": "MIT",
