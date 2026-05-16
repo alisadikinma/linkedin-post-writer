@@ -8,6 +8,18 @@
 >
 > **Addendum 3 (still applies)** — plugin = content generation only. Scheduling, publishing, OAuth, cron, Telegram notifications, admin UI = Portfolio_v2 backend scope. Plugin emits JSON via `claude -p "/linkedin-gen ..."`, admin panel handles everything downstream.
 
+## 🧠 Vault Context Link
+
+Skill library — agnostic, dipakai cross-project (Portfolio_v2 dispatcher, dll).
+
+Pre-read kalau perlu konteks:
+- `30-Knowledge/content-strategy-shared.md` — LinkedIn algorithm, Depth Score rubric
+- `20-Projects/claude-plugin/README.md` — skill ecosystem overview
+- `10-Identity/voice-tone.md` — kalau modify hook generator / pillar routing
+- `10-Identity/positioning.md` — USP voice (auto-loaded global)
+
+JANGAN hardcode project-specific values. Pakai `{{placeholder}}` syntax di SKILL.md + compiled references.
+
 ## Project Overview
 
 Claude Code plugin `linkedin-post-writer` that auto-converts every newly published blog post into an algorithm-optimized LinkedIn post. Post-v0.5.0 the plugin authors **text format only** (1100-1300 char native LinkedIn post with link-in-comment + Depth Score ≥80 validation). For **carousel format**, the orchestrator emits a routing envelope (`status: 'route_to_carousel_gen'`) and the Portfolio_v2 backend dispatches the universal `/carousel-gen` engine separately to produce slide JSON + image prompts.
